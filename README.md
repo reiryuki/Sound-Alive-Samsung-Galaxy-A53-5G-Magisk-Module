@@ -16,9 +16,9 @@
 - com.sec.hearingadjust by Samsung Electronics Co., Ltd. from apkmirror.com
 - com.samsung.android.soundassistant by Samsung Electronics Co., Ltd. from apkmirror.com
 - com.samsung.android.setting.multisound by Samsung Electronics Co., Ltd. from apkmirror.com
-- SoundAlive_T.prof: https://github.com/ItsLynix/samsung_a53x_dump
-- AdaptSound_T.prof: https://github.com/ItsLynix/samsung_a53x_dump
-- MultiSoundSetting.prof: https://github.com/ItsLynix/samsung_a53x_dump
+- SoundAlive_T.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
+- AdaptSound_T.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
+- MultiSoundSetting.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
 - libswspatializer.so: https://github.com/ItsLynix/samsung_a53x_dump
 - libspatializerparamstorage.so: https://github.com/ItsLynix/samsung_a53x_dump
 - spatializer-aidl-cpp.so: https://github.com/ItsLynix/samsung_a53x_dump
