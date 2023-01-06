@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <hidden-api-whitelisted-app package="com.sec.android.app.soundalive"/>
+    <allow-implicit-broadcast action="android.media.VOLUME_CHANGED_ACTION"/>
+    <allow-implicit-broadcast action="android.media.STREAM_DEVICES_CHANGED_ACTION"/>
+</config>
