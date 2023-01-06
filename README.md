@@ -27,7 +27,7 @@
 - https://t.me/androidryukimods/854
 
 ## Requirements
-- Android 5 and up (not tested on Android 10 and bellow)
+- Android 5 and up (not tested on Android 8 and bellow)
 - Magisk installed
 
 ## Installation Guide & Download Link
