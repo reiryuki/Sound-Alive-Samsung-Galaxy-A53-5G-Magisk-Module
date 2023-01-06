@@ -31,7 +31,7 @@
 - Magisk installed
 
 ## Installation Guide & Download Link
-- Install this module via Magisk app or Recovery
+- Install this module https://www.pling.com/p/1968026/ via Magisk app or Recovery
 - Install AML Magisk Module https://t.me/androidryukimodsdiscussions/29836 only if using any other audio mod module
 - Reboot
 - If the FX is stopped after you stop/pause playback and cannot be restarted again except you re-open the EQ,
