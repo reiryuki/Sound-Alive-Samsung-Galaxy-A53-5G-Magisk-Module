@@ -19,9 +19,9 @@
 - SoundAlive_T.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
 - AdaptSound_T.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
 - MultiSoundSetting.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
-- libswspatializer.so: https://github.com/ItsLynix/samsung_a53x_dump
-- libspatializerparamstorage.so: https://github.com/ItsLynix/samsung_a53x_dump
-- spatializer-aidl-cpp.so: https://github.com/ItsLynix/samsung_a53x_dump
+- libswspatializer.so: https://github.com/RedPrez16/device_samsung_b0q
+- libspatializerparamstorage.so: https://github.com/RedPrez16/device_samsung_b0q
+- spatializer-aidl-cpp.so: https://github.com/RedPrez16/device_samsung_b0q
 
 ## Screenshots
 - https://t.me/androidryukimods/854
@@ -39,7 +39,7 @@
   Everytime you stop/pause music, Sound Alive app will be restarted and re-launched on the next you play music to re-apply the FX.
   Media volume will be decreased 3 steps for a while (if it's higher than 3) and re-increased 3 steps back after the FX is applied.
 
-## Known Issue
+## Known Issues
 - Dolby Atmos, UHQ Upscaler, Surround & Adapt Sound doesn't work.
 - Sound Helper app cannot detect fast forward media button.
 

@@ -326,6 +326,20 @@ for NAMES in $NAME; do
 done
 }
 
+# adjust
+if [ "$API" -ge 29 ]\
+&& [ "`grep_prop sa.spatial $OPTIONALS`" != 0 ]; then
+  NAME=libswspatializer.so
+  FILE=`find $MODPATH/system -type f -name $NAME`
+  ui_print "- Adjusting $NAME..."
+  sed -i 's/#10//g' $MODPATH/.aml.sh
+  sed -i 's/b0q/t2s/g' $FILE
+  sed -i 's/SM-S9080/SM-G996B/g' $FILE
+  ui_print " "
+else
+  rm -f `find $MODPATH/system -type f -name *spatial*`
+fi
+
 # audio rotation
 FILE=$MODPATH/service.sh
 if [ "`grep_prop audio.rotation $OPTIONALS`" == 1 ]; then
