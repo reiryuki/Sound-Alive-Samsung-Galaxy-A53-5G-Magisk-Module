@@ -122,7 +122,6 @@ rm -f `find $MODPATH/system -type f -name *policy*volume*.xml -o -name *audio*ef
 
 # function
 media_codecs() {
-# media codecs
 NAME=media_codecs.xml
 rm -f $MODVETC/$NAME
 DIR=$AML/system/vendor/etc

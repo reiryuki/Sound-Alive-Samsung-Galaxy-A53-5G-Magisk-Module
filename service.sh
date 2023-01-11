@@ -107,8 +107,13 @@ sleep 40
 grant_permission() {
 UID=`pm list packages -U | grep $PKG | sed -n -e "s/package:$PKG uid://p"`
 pm grant $PKG android.permission.READ_EXTERNAL_STORAGE
+appops set $PKG READ_EXTERNAL_STORAGE allow
 pm grant $PKG android.permission.WRITE_EXTERNAL_STORAGE
+appops set $PKG WRITE_EXTERNAL_STORAGE allow
 pm grant $PKG android.permission.ACCESS_MEDIA_LOCATION 2>/dev/null
+appops set $PKG ACCESS_MEDIA_LOCATION allow
+appops set --uid $UID ACCESS_MEDIA_LOCATION allow
+appops set $PKG WRITE_SETTINGS allow
 if [ "$API" -ge 33 ]; then
   pm grant $PKG android.permission.READ_MEDIA_AUDIO
   pm grant $PKG android.permission.READ_MEDIA_VIDEO
@@ -117,10 +122,6 @@ if [ "$API" -ge 33 ]; then
 fi
 appops set --uid $UID LEGACY_STORAGE allow
 appops set $PKG LEGACY_STORAGE allow
-appops set $PKG READ_EXTERNAL_STORAGE allow
-appops set $PKG WRITE_EXTERNAL_STORAGE allow
-appops set $PKG ACCESS_MEDIA_LOCATION allow
-appops set --uid $UID ACCESS_MEDIA_LOCATION allow
 appops set $PKG READ_MEDIA_AUDIO allow
 appops set $PKG READ_MEDIA_VIDEO allow
 appops set $PKG READ_MEDIA_IMAGES allow
@@ -152,7 +153,6 @@ fi
 PKG=com.samsung.android.soundassistant
 grant_permission
 pm grant $PKG android.permission.RECORD_AUDIO
-appops set $PKG WRITE_SETTINGS allow
 if [ "$API" -ge 31 ]; then
   pm grant $PKG android.permission.BLUETOOTH_CONNECT
 fi
@@ -181,10 +181,20 @@ if [ "$API" -ge 30 ]; then
   appops set $PKG AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore
 fi
 
+# grant
+PKG=com.reiryuki.soundalivehelper
+if pm list packages | grep $PKG; then
+  grant_permission
+  appops set $PKG GET_USAGE_STATS allow
+  appops set $PKG ACCESS_RESTRICTED_SETTINGS allow
+  appops set $PKG SYSTEM_ALERT_WINDOW allow
+  dumpsys deviceidle whitelist +$PKG
+fi
+
 # function
 wait_audioserver() {
 PID=`pidof $SVC`
-sleep 90
+sleep 180
 NEXTPID=`pidof $SVC`
 }
 

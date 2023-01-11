@@ -2,4 +2,3 @@ com.sec.android.app.soundalive
 com.sec.hearingadjust
 com.samsung.android.soundassistant
 com.samsung.android.setting.multisound
-com.reiryuki.soundalivehelper

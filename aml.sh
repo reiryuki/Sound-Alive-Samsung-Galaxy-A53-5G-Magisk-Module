@@ -379,7 +379,7 @@ dha
 dap_soundalive_proxy
 gamedap_soundalive
 soundbooster_plus
-#10spatializer
+#11spatializer
 
 # patch audio policy
 if [ "$MODAP" ]; then

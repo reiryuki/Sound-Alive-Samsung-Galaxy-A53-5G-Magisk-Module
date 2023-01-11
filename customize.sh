@@ -327,12 +327,12 @@ done
 }
 
 # adjust
-if [ "$API" -ge 29 ]\
+if [ "$API" -ge 30 ]\
 && [ "`grep_prop sa.spatial $OPTIONALS`" != 0 ]; then
   NAME=libswspatializer.so
   FILE=`find $MODPATH/system -type f -name $NAME`
   ui_print "- Adjusting $NAME..."
-  sed -i 's/#10//g' $MODPATH/.aml.sh
+  sed -i 's/#11//g' $MODPATH/.aml.sh
   sed -i 's/b0q/t2s/g' $FILE
   sed -i 's/SM-S9080/SM-G996B/g' $FILE
   ui_print " "
@@ -376,6 +376,13 @@ if [ "$API" -ge 26 ]; then
   ui_print " "
 fi
 
+# install
+ui_print "- Installing Sound Helper app..."
+FILE=$MODPATH/SoundHelper.apk
+pm install -g -i com.android.vending $FILE
+rm -f $FILE
+ui_print "  Please open Sound Helper app and grant the permissions!"
+ui_print " "
 
 
 

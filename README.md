@@ -7,7 +7,6 @@
 ## Descriptions
 - Equalizer soundfx ported from Samsung S21 Plus (t2s) and integrated as a Magisk Module for all supported and rooted devices with Magisk
 - Global type type soundfx
-- Doesn't support post process stream
 
 ## Sources
 - https://dumps.tadiphone.dev/dumps/samsung/t2s t2sxxx-user-12-SP1A.210812.016-G996BXXS3BUL1-release-keys
@@ -36,12 +35,12 @@
 - Reboot
 - If the FX is stopped after you stop/pause playback and cannot be restarted again except you re-open the EQ,
   then tap Sound Helper app and grant root and all permission and the notification access to fix the issue.
-  Everytime you stop/pause music, Sound Alive app will be restarted and re-launched on the next you play music to re-apply the FX.
-  Media volume will be decreased 3 steps for a while (if it's higher than 3) and re-increased 3 steps back after the FX is applied.
+  Everytime you stop/pause music, Sound Alive app will be restarted on the next you play music to re-apply the FX.
+  Music volume will be decreased 3 steps for a while (if it's higher than 3) and re-increased 3 steps back after the FX is applied.
+  Sound Helper app cannot detect fast forward media button, so you need to stop/pause and play again to re-apply the FX.
 
 ## Known Issues
-- Dolby Atmos, UHQ Upscaler, Surround & Adapt Sound doesn't work.
-- Sound Helper app cannot detect fast forward media button.
+- Dolby Atmos, UHQ Upscaler, Surround & Adapt Sound doesn't work. They seems require kernel & audio hal ROM support.
 
 ## Troubleshootings and Optionals
 - https://t.me/androidryukimodsdiscussions/29836
