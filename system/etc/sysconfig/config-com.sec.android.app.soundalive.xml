@@ -3,4 +3,18 @@
     <hidden-api-whitelisted-app package="com.sec.android.app.soundalive"/>
     <allow-implicit-broadcast action="android.media.VOLUME_CHANGED_ACTION"/>
     <allow-implicit-broadcast action="android.media.STREAM_DEVICES_CHANGED_ACTION"/>
+    <allow-implicit-broadcast action="android.bluetooth.a2dp.profile.action.ACTIVE_DEVICE_CHANGED"/>
+    <allow-implicit-broadcast action="com.samsung.sea.rm.DEMO_RESET_STARTED"/>
+    <allow-implicit-broadcast action="com.samsung.sea.rm.DEMO_RESET_COMPLETED"/>
+    <allow-implicit-broadcast action="com.samsung.android.desktopmode.action.ENTER_DESKTOP_MODE"/>
+    <allow-implicit-broadcast action="com.samsung.android.desktopmode.action.EXIT_DESKTOP_MODE"/>
+    <allow-implicit-broadcast action="com.samsung.bluetooth.a2dp.intent.action.DUAL_PLAY_MODE_ENABLED"/>
+    <allow-implicit-broadcast action="com.samsung.android.intent.karaoke"/>
+    <allow-implicit-broadcast action="com.samsung.intent.action.EMERGENCY_STATE_CHANGED"/>
+    <allow-implicit-broadcast action="com.samsung.intent.action.ACTION_DOLBY_CONTENT_PLAYBACK_STATE_CHANGED"/>
+    <allow-implicit-broadcast action="com.sec.samsungsound.ACTION_SOUNDALIVE_CHANGED"/>
+    <allow-implicit-broadcast action="com.samsung.intent.action.MEDIA_SERVER_REBOOTED"/>
+    <allow-implicit-broadcast action="com.samsung.intent.action.SETTINGS_SOFT_RESET"/>
+    <allow-implicit-broadcast action="com.sec.android.app.soundalive.SET_EFFECTS_SETTING"/>
+    <allow-implicit-broadcast action="com.sec.android.app.soundalive.RECEIVE_GAME_EVENTS"/>
 </config>
