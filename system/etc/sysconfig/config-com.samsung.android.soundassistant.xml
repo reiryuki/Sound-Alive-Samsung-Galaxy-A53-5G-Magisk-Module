@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
     <hidden-api-whitelisted-app package="com.samsung.android.soundassistant"/>
+    <allow-implicit-broadcast action="com.samsung.android.intent.action.REQUEST_BACKUP_SOUND_ASSISTANT"/>
+    <allow-implicit-broadcast action="com.samsung.android.intent.action.REQUEST_RESTORE_SOUND_ASSISTANT"/>
 </config>
