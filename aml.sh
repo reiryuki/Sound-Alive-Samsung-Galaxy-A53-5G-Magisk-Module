@@ -499,28 +499,6 @@ if [ "$MODAEX" ]; then
   sed -i "/<effects>/a\        <effectProxy name=\"$NAME\" library=\"proxy\" uuid=\"$UUIDPROXY\">" $MODAEX
 fi
 }
-gamedap() {
-# store
-LIB=libswgamedap.so
-LIBNAME=gamedap
-LIBNAME=gamedap_sa
-NAME=gamedap
-NAME=gamedap_sa
-UUID=6ab06da4-c516-4611-8166-452799218539
-RMVS="$LIB $LIBNAME $NAME"
-# patch audio effects conf
-if [ "$MODAEC" ]; then
-  remove_conf
-  sed -i "/^libraries {/a\  $LIBNAME {\n    path $LIBPATH\/$LIB\n  }" $MODAEC
-  sed -i "/^effects {/a\  $NAME {\n    library $LIBNAME\n    uuid $UUID\n  }" $MODAEC
-fi
-# patch audio effects xml
-if [ "$MODAEX" ]; then
-  remove_xml
-  sed -i "/<libraries>/a\        <library name=\"$LIBNAME\" path=\"$LIB\"\/>" $MODAEX
-  sed -i "/<effects>/a\        <effect name=\"$NAME\" library=\"$LIBNAME\" uuid=\"$UUID\"\/>" $MODAEX
-fi
-}
 spatializer() {
 # store
 LIB=libswspatializer.so
