@@ -1,46 +1,31 @@
-# Sound Alive Samsung S21 Plus Magisk Module
+# Sound Alive Samsung Galaxy A53 5G Magisk Module
 
 ## DISCLAIMER
 - Samsung app and blobs are owned by Samsung™.
-- The MIT license specified here is for the Magisk Module, not for Samsung app and blobs.
+- The MIT license specified here is for the Magisk Module only, not for Samsung app and blobs.
 
 ## Descriptions
-- Equalizer soundfx ported from Samsung S21 Plus (t2s) and integrated as a Magisk Module for all supported and rooted devices with Magisk
-- Global type type soundfx
+- Equalizer soundfx ported from Samsung Galaxy A53 5G (a53x) and integrated as a Magisk Module for all supported and rooted devices with Magisk
+- Global type soundfx
 
 ## Sources
-- https://dumps.tadiphone.dev/dumps/samsung/t2s t2sxxx-user-12-SP1A.210812.016-G996BXXS3BUL1-release-keys
-- libmysound: https://dumps.tadiphone.dev/dumps/samsung/r5q r5qnaxx-user-12-SP1A.210812.016-G770FXXS6FULA-release-keys
-- com.sec.android.app.soundalive by Samsung Electronics Co., Ltd. from apkmirror.com
-- com.sec.hearingadjust by Samsung Electronics Co., Ltd. from apkmirror.com
-- com.samsung.android.soundassistant by Samsung Electronics Co., Ltd. from apkmirror.com
-- com.samsung.android.setting.multisound by Samsung Electronics Co., Ltd. from apkmirror.com
-- SoundAlive_T.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
-- AdaptSound_T.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
-- MultiSoundSetting.apk.prof: https://github.com/ItsLynix/samsung_a53x_dump
-- libswspatializer.so: https://github.com/RedPrez16/device_samsung_b0q
-- libspatializerparamstorage.so: https://github.com/RedPrez16/device_samsung_b0q
-- spatializer-aidl-cpp.so: https://github.com/RedPrez16/device_samsung_b0q
+- https://github.com/ItsLynix/samsung_a53x_dump a53xnaxx-user-13-TP1A.220624.014-A536BXXU4BVJG-release-keys
 
 ## Screenshots
 - https://t.me/androidryukimods/854
 
 ## Requirements
-- Android 5 and up (not tested on Android 8 and bellow)
-- Magisk installed
+- Android 5 and up
+- Magisk or KernelSU installed
 
 ## Installation Guide & Download Link
-- Install this module https://www.pling.com/p/1968026/ via Magisk app or Recovery
+- Install this module https://www.pling.com/p/1968026/ via Magisk app or KernelSU app or Recovery if Magisk installed
 - Install AML Magisk Module https://t.me/androidryukimodsdiscussions/29836 only if using any other audio mod module
 - Reboot
-- If the FX is stopped after you stop/pause playback and cannot be restarted again except you re-open the EQ,
-  then tap Sound Helper app and grant root and all permission and the notification access to fix the issue.
-  Everytime you stop/pause music, Sound Alive app will be restarted on the next you play music to re-apply the FX.
-  Music volume will be decreased 3 steps for a while (if it's higher than 3) and re-increased 3 steps back after the FX is applied.
-  Sound Helper app cannot detect fast forward media button, so you need to stop/pause and play again to re-apply the FX.
+- If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot after
 
 ## Known Issues
-- Dolby Atmos, UHQ Upscaler, Surround & Adapt Sound doesn't work. They seems require kernel & audio hal ROM support.
+- Dolby Atmos, UHQ Upscaler, & Adapt Sound doesn't work except with OneUI ROM and Samsung stock kernel.
 
 ## Troubleshootings and Optionals
 - https://t.me/androidryukimodsdiscussions/29836
@@ -51,7 +36,7 @@
 - If you don't do above, issues will be closed immediately
 
 ## Tested on
-- Android 13 AOSP ROM
+- Android 13 CrDroid ROM
 
 ## Credits and contributors
 - https://t.me/viperatmos

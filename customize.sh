@@ -1,41 +1,16 @@
 # space
-if [ "$BOOTMODE" == true ]; then
+ui_print " "
+
+# log
+if [ "$BOOTMODE" != true ]; then
+  FILE=/sdcard/$MODID\_recovery.log
+  ui_print "- Log will be saved at $FILE"
+  exec 2>$FILE
   ui_print " "
 fi
 
-# magisk
-if [ -d /sbin/.magisk ]; then
-  MAGISKTMP=/sbin/.magisk
-else
-  MAGISKTMP=`realpath /dev/*/.magisk`
-fi
-
-# path
-if [ "$BOOTMODE" == true ]; then
-  MIRROR=$MAGISKTMP/mirror
-else
-  MIRROR=
-fi
-SYSTEM=`realpath $MIRROR/system`
-PRODUCT=`realpath $MIRROR/product`
-VENDOR=`realpath $MIRROR/vendor`
-SYSTEM_EXT=`realpath $MIRROR/system_ext`
-if [ -d $MIRROR/odm ]; then
-  ODM=`realpath $MIRROR/odm`
-else
-  ODM=`realpath /odm`
-fi
-if [ -d $MIRROR/my_product ]; then
-  MY_PRODUCT=`realpath $MIRROR/my_product`
-else
-  MY_PRODUCT=`realpath /my_product`
-fi
-
-# optionals
-OPTIONALS=/sdcard/optionals.prop
-if [ ! -f $OPTIONALS ]; then
-  touch $OPTIONALS
-fi
+# run
+. $MODPATH/function.sh
 
 # info
 MODVER=`grep_prop version $MODPATH/module.prop`
@@ -43,8 +18,15 @@ MODVERCODE=`grep_prop versionCode $MODPATH/module.prop`
 ui_print " ID=$MODID"
 ui_print " Version=$MODVER"
 ui_print " VersionCode=$MODVERCODE"
-ui_print " MagiskVersion=$MAGISK_VER"
-ui_print " MagiskVersionCode=$MAGISK_VER_CODE"
+if [ "$KSU" == true ]; then
+  ui_print " KSUVersion=$KSU_VER"
+  ui_print " KSUVersionCode=$KSU_VER_CODE"
+  ui_print " KSUKernelVersionCode=$KSU_KERNEL_VER_CODE"
+  sed -i 's|#k||g' $MODPATH/post-fs-data.sh
+else
+  ui_print " MagiskVersion=$MAGISK_VER"
+  ui_print " MagiskVersionCode=$MAGISK_VER_CODE"
+fi
 ui_print " "
 
 # sdk
@@ -62,18 +44,38 @@ fi
 # bit
 if [ "$IS64BIT" != true ]; then
   ui_print "- 32 bit"
-  rm -rf `find $MODPATH/system -type d -name *64`
+  rm -rf `find $MODPATH -type d -name *64*`
 else
   ui_print "- 64 bit"
 fi
 ui_print " "
 
-# mount
-if [ "$BOOTMODE" != true ]; then
-  mount -o rw -t auto /dev/block/bootdevice/by-name/cust /vendor
-  mount -o rw -t auto /dev/block/bootdevice/by-name/vendor /vendor
-  mount -o rw -t auto /dev/block/bootdevice/by-name/persist /persist
-  mount -o rw -t auto /dev/block/bootdevice/by-name/metadata /metadata
+# recovery
+mount_partitions_in_recovery
+
+# magisk
+magisk_setup
+
+# path
+SYSTEM=`realpath $MIRROR/system`
+PRODUCT=`realpath $MIRROR/product`
+VENDOR=`realpath $MIRROR/vendor`
+SYSTEM_EXT=`realpath $MIRROR/system_ext`
+if [ "$BOOTMODE" == true ]; then
+  if [ ! -d $MIRROR/odm ]; then
+    mount_odm_to_mirror
+  fi
+  if [ ! -d $MIRROR/my_product ]; then
+    mount_my_product_to_mirror
+  fi
+fi
+ODM=`realpath $MIRROR/odm`
+MY_PRODUCT=`realpath $MIRROR/my_product`
+
+# optionals
+OPTIONALS=/sdcard/optionals.prop
+if [ ! -f $OPTIONALS ]; then
+  touch $OPTIONALS
 fi
 
 # sepolicy
@@ -107,43 +109,52 @@ fi
 
 # cleaning
 ui_print "- Cleaning..."
-PKG=`cat $MODPATH/package.txt`
+PKGS=`cat $MODPATH/package.txt`
 if [ "$BOOTMODE" == true ]; then
-  for PKGS in $PKG; do
-    RES=`pm uninstall $PKGS`
+  for PKG in $PKGS; do
+    RES=`pm uninstall $PKG 2>/dev/null`
   done
 fi
 rm -rf $MODPATH/unused
-rm -rf /metadata/magisk/$MODID
-rm -rf /mnt/vendor/persist/magisk/$MODID
-rm -rf /persist/magisk/$MODID
-rm -rf /data/unencrypted/magisk/$MODID
-rm -rf /cache/magisk/$MODID
+remove_sepolicy_rule
 ui_print " "
 
 # function
 conflict() {
-for NAMES in $NAME; do
-  DIR=/data/adb/modules_update/$NAMES
+for NAME in $NAMES; do
+  DIR=/data/adb/modules_update/$NAME
   if [ -f $DIR/uninstall.sh ]; then
     sh $DIR/uninstall.sh
   fi
   rm -rf $DIR
-  DIR=/data/adb/modules/$NAMES
+  DIR=/data/adb/modules/$NAME
   rm -f $DIR/update
   touch $DIR/remove
-  FILE=/data/adb/modules/$NAMES/uninstall.sh
+  FILE=/data/adb/modules/$NAME/uninstall.sh
   if [ -f $FILE ]; then
     sh $FILE
     rm -f $FILE
   fi
-  rm -rf /metadata/magisk/$NAMES
-  rm -rf /mnt/vendor/persist/magisk/$NAMES
-  rm -rf /persist/magisk/$NAMES
-  rm -rf /data/unencrypted/magisk/$NAMES
-  rm -rf /cache/magisk/$NAMES
+  rm -rf /metadata/magisk/$NAME
+  rm -rf /mnt/vendor/persist/magisk/$NAME
+  rm -rf /persist/magisk/$NAME
+  rm -rf /data/unencrypted/magisk/$NAME
+  rm -rf /cache/magisk/$NAME
+  rm -rf /cust/magisk/$NAME
 done
 }
+conflict_disable() {
+for NAME in $NAMES; do
+  DIR=/data/adb/modules_update/$NAME
+  touch $DIR/disable
+  DIR=/data/adb/modules/$NAME
+  touch $DIR/disable
+done
+}
+
+# conflict
+NAMES=SoundAliveFXRemover
+conflict_disable
 
 # function
 cleanup() {
@@ -164,7 +175,7 @@ if [ "`grep_prop data.cleanup $OPTIONALS`" == 1 ]; then
   ui_print "- Cleaning-up $MODID data..."
   cleanup
   ui_print " "
-elif [ -d $DIR ] && ! grep -Eq "$MODNAME" $FILE; then
+elif [ -d $DIR ] && ! grep -q "$MODNAME" $FILE; then
   ui_print "- Different version detected"
   ui_print "  Cleaning-up $MODID data..."
   cleanup
@@ -173,29 +184,28 @@ fi
 
 # function
 permissive_2() {
-sed -i '1i\
-SELINUX=`getenforce`\
-if [ "$SELINUX" == Enforcing ]; then\
-  magiskpolicy --live "permissive *"\
-fi\' $MODPATH/post-fs-data.sh
+sed -i 's|#2||g' $MODPATH/post-fs-data.sh
 }
 permissive() {
-SELINUX=`getenforce`
-if [ "$SELINUX" == Enforcing ]; then
-  setenforce 0
-  SELINUX=`getenforce`
-  if [ "$SELINUX" == Enforcing ]; then
+FILE=/sys/fs/selinux/enforce
+SELINUX=`cat $FILE`
+if [ "$SELINUX" == 1 ]; then
+  if ! setenforce 0; then
+    echo 0 > $FILE
+  fi
+  SELINUX=`cat $FILE`
+  if [ "$SELINUX" == 1 ]; then
     ui_print "  Your device can't be turned to Permissive state."
     ui_print "  Using Magisk Permissive mode instead."
     permissive_2
   else
-    setenforce 1
-    sed -i '1i\
-SELINUX=`getenforce`\
-if [ "$SELINUX" == Enforcing ]; then\
-  setenforce 0\
-fi\' $MODPATH/post-fs-data.sh
+    if ! setenforce 1; then
+      echo 1 > $FILE
+    fi
+    sed -i 's|#1||g' $MODPATH/post-fs-data.sh
   fi
+else
+  sed -i 's|#1||g' $MODPATH/post-fs-data.sh
 fi
 }
 
@@ -212,25 +222,17 @@ elif [ "`grep_prop permissive.mode $OPTIONALS`" == 2 ]; then
   ui_print " "
 fi
 
-# /priv-app
-if [ ! -d $SYSTEM/priv-app ]; then
-  ui_print "- /system/priv-app is not supported"
-  ui_print "  Moving to /system/app..."
-  cp -rf $MODPATH/system/priv-app/* $MODPATH/system/app
-  rm -rf $MODPATH/system/priv-app
-  ui_print " "
-fi
-
 # function
 extract_lib() {
-for APPS in $APP; do
-  FILE=`find $MODPATH/system -type f -name $APPS.apk`
+for APP in $APPS; do
+  FILE=`find $MODPATH/system -type f -name $APP.apk`
   if [ -f `dirname $FILE`/extract ]; then
     rm -f `dirname $FILE`/extract
     ui_print "- Extracting..."
-    DIR=`dirname $FILE`/lib/$ARCH
+    DIR=`dirname $FILE`/lib/"$ARCH"
     mkdir -p $DIR
     rm -rf $TMPDIR/*
+    DES=lib/"$ABI"/*
     unzip -d $TMPDIR -o $FILE $DES
     cp -f $TMPDIR/$DES $DIR
     ui_print " "
@@ -238,112 +240,313 @@ for APPS in $APP; do
 done
 }
 hide_oat() {
-for APPS in $APP; do
-  mkdir -p `find $MODPATH/system -type d -name $APPS`/oat
-  touch `find $MODPATH/system -type d -name $APPS`/oat/.replace
+for APP in $APPS; do
+  REPLACE="$REPLACE
+  `find $MODPATH/system -type d -name $APP | sed "s|$MODPATH||g"`/oat"
 done
 }
 replace_dir() {
 if [ -d $DIR ]; then
-  mkdir -p $MODDIR
-  touch $MODDIR/.replace
+  REPLACE="$REPLACE $MODDIR"
 fi
 }
 hide_app() {
-DIR=$SYSTEM/app/$APPS
-MODDIR=$MODPATH/system/app/$APPS
-replace_dir
-DIR=$SYSTEM/priv-app/$APPS
-MODDIR=$MODPATH/system/priv-app/$APPS
-replace_dir
-DIR=$PRODUCT/app/$APPS
-MODDIR=$MODPATH/system/product/app/$APPS
-replace_dir
-DIR=$PRODUCT/priv-app/$APPS
-MODDIR=$MODPATH/system/product/priv-app/$APPS
-replace_dir
-DIR=$MY_PRODUCT/app/$APPS
-MODDIR=$MODPATH/system/product/app/$APPS
-replace_dir
-DIR=$MY_PRODUCT/priv-app/$APPS
-MODDIR=$MODPATH/system/product/priv-app/$APPS
-replace_dir
-DIR=$PRODUCT/preinstall/$APPS
-MODDIR=$MODPATH/system/product/preinstall/$APPS
-replace_dir
-DIR=$SYSTEM_EXT/app/$APPS
-MODDIR=$MODPATH/system/system_ext/app/$APPS
-replace_dir
-DIR=$SYSTEM_EXT/priv-app/$APPS
-MODDIR=$MODPATH/system/system_ext/priv-app/$APPS
-replace_dir
-DIR=$VENDOR/app/$APPS
-MODDIR=$MODPATH/system/vendor/app/$APPS
-replace_dir
-DIR=$VENDOR/euclid/product/app/$APPS
-MODDIR=$MODPATH/system/vendor/euclid/product/app/$APPS
-replace_dir
+for APP in $APPS; do
+  DIR=$SYSTEM/app/$APP
+  MODDIR=/system/app/$APP
+  replace_dir
+  DIR=$SYSTEM/priv-app/$APP
+  MODDIR=/system/priv-app/$APP
+  replace_dir
+  DIR=$PRODUCT/app/$APP
+  MODDIR=/system/product/app/$APP
+  replace_dir
+  DIR=$PRODUCT/priv-app/$APP
+  MODDIR=/system/product/priv-app/$APP
+  replace_dir
+  DIR=$MY_PRODUCT/app/$APP
+  MODDIR=/system/product/app/$APP
+  replace_dir
+  DIR=$MY_PRODUCT/priv-app/$APP
+  MODDIR=/system/product/priv-app/$APP
+  replace_dir
+  DIR=$PRODUCT/preinstall/$APP
+  MODDIR=/system/product/preinstall/$APP
+  replace_dir
+  DIR=$SYSTEM_EXT/app/$APP
+  MODDIR=/system/system_ext/app/$APP
+  replace_dir
+  DIR=$SYSTEM_EXT/priv-app/$APP
+  MODDIR=/system/system_ext/priv-app/$APP
+  replace_dir
+  DIR=$VENDOR/app/$APP
+  MODDIR=/system/vendor/app/$APP
+  replace_dir
+  DIR=$VENDOR/euclid/product/app/$APP
+  MODDIR=/system/vendor/euclid/product/app/$APP
+  replace_dir
+done
 }
 
 # extract
-APP="`ls $MODPATH/system/priv-app` `ls $MODPATH/system/app`"
-DES=lib/`getprop ro.product.cpu.abi`/*
+APPS="`ls $MODPATH/system/priv-app` `ls $MODPATH/system/app`"
 extract_lib
 # hide
 hide_oat
-APP="MusicFX AudioFX"
-for APPS in $APP; do
-  hide_app
-done
-
-# directory
-if [ ! -d $VENDOR/lib/soundfx ]; then
-  ui_print "- /vendor/lib/soundfx is not suported."
-  ui_print "  Moving to /system/lib/soundfx..."
-  mv -f $MODPATH/system/vendor/lib* $MODPATH/system
-  ui_print " "
-fi
+APPS="MusicFX AudioFX"
+hide_app
 
 # function
-file_check_vendor() {
-for NAMES in $NAME; do
-  if [ "$IS64BIT" == true ]; then
-    FILE=$VENDOR/lib64/$NAMES
-    FILE2=$ODM/lib64/$NAMES
-    if [ -f $FILE ] || [ -f $FILE2 ]; then
-      ui_print "- Detected $NAMES 64"
-      ui_print " "
-      rm -f $MODPATH/system/vendor/lib64/$NAMES
-    fi
-  fi
-  FILE=$VENDOR/lib/$NAMES
-  FILE2=$ODM/lib/$NAMES
-  if [ -f $FILE ] || [ -f $FILE2 ]; then
-    ui_print "- Detected $NAMES"
-    ui_print " "
-    rm -f $MODPATH/system/vendor/lib/$NAMES
-  fi
-done
+rename_file() {
+ui_print "- Renaming"
+ui_print "$FILE"
+ui_print "  to"
+ui_print "$MODFILE"
+mv -f $FILE $MODFILE
+ui_print " "
+}
+change_name() {
+ui_print "- Changing $NAME to $NAME2 at"
+ui_print "$FILE"
+ui_print "  Please wait..."
+sed -i "s/$NAME/$NAME2/g" $FILE
+ui_print " "
 }
 
-# adjust
-if [ "$API" -ge 30 ]\
-&& [ "`grep_prop sa.spatial $OPTIONALS`" != 0 ]; then
-  NAME=libswspatializer.so
-  FILE=`find $MODPATH/system -type f -name $NAME`
-  ui_print "- Adjusting $NAME..."
-  sed -i 's/#11//g' $MODPATH/.aml.sh
-  sed -i 's/b0q/t2s/g' $FILE
-  sed -i 's/SM-S9080/SM-G996B/g' $FILE
-  ui_print " "
+# mod
+NAME=libcorefx.so
+if [ -f $SYSTEM/lib/$NAME ]; then
+  COREFX=true
+else
+  COREFX=false
+fi
+if [ -f $SYSTEM/lib64/$NAME ]; then
+  COREFX64=true
+else
+  COREFX64=false
+fi
+if [ "`grep_prop sa.mod $OPTIONALS`" != 0 ]; then
+  if [ $COREFX == true ]; then
+    ui_print "- Copying $NAME..."
+    cp -f $SYSTEM/lib/$NAME $MODPATH/system/lib
+    ui_print " "
+  fi
+  if [ $COREFX64 == true ]; then
+    ui_print "- Copying $NAME 64..."
+    cp -f $SYSTEM/lib64/$NAME $MODPATH/system/lib64
+    ui_print " "
+  fi
+  NAME=dax-default.xml
+  NAME2=dsa-default.xml
+  FILE=$MODPATH/system/vendor/etc/dolby/$NAME
+  MODFILE=$MODPATH/system/vendor/etc/dolby/$NAME2
+  rename_file
+  FILE=$MODPATH/system/vendor/lib*/libprofileparamstorage.so
+  change_name
+  NAME=libswdap.so
+  NAME2=libswdsa.so
+  FILE=$MODPATH/system/vendor/lib/soundfx/$NAME
+  MODFILE=$MODPATH/system/vendor/lib/soundfx/$NAME2
+  rename_file
+  if [ "$IS64BIT" == true ]; then
+    FILE=$MODPATH/system/vendor/lib64/soundfx/$NAME
+    MODFILE=$MODPATH/system/vendor/lib64/soundfx/$NAME2
+    rename_file
+  fi
+  FILE="$MODPATH/system/vendor/lib*/soundfx/$NAME2
+$MODPATH/.aml.sh"
+  change_name
+  NAME=$'\xef\x93\x7f\x67\x55\x87'
+  NAME2=$'\x36\x86\xda\xf3\x76\x49'
+  if [ $COREFX == true ] || [ $COREFX64 == true ]; then
+    FILE="$MODPATH/system/lib*/libcorefx.so
+$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
+$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so
+$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
+  else
+    FILE="$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
+$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so
+$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
+  fi
+  change_name
+  NAME=$'\x45\x27\x99\x21\x85\x39'
+  if [ $COREFX == true ] || [ $COREFX64 == true ]; then
+    FILE="$MODPATH/system/lib*/libcorefx.so
+$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
+  else
+    FILE="$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
+  fi
+  change_name
+  NAME=$'\xd5\x3e\x26\xda\x02\x53'
+  FILE=$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
+  change_name
+  NAME=$'\x39\x53\x7a\x04\xbc\xaa'
+  if [ $COREFX == true ] || [ $COREFX64 == true ]; then
+    FILE="$MODPATH/system/lib*/libcorefx.so
+$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so"
+  else
+    FILE="$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so"
+  fi
+  change_name
+  NAME=452799218539
+  NAME2=3686daf37649
+  FILE=$MODPATH/.aml.sh
+  change_name
+  NAME=d53e26da0253
+  change_name
+  NAME=39537a04bcaa
+  change_name
+fi
+
+# spatial
+if [ "`grep_prop sa.spatial $OPTIONALS`" == 1 ]; then
+  sed -i 's|#z||g' $MODPATH/.aml.sh
 else
   rm -f `find $MODPATH/system -type f -name *spatial*`
 fi
 
+# stream mode
+FILE=$MODPATH/.aml.sh
+PROP=`grep_prop stream.mode $OPTIONALS`
+if echo "$PROP" | grep -q m; then
+  ui_print "- Activating music stream..."
+  sed -i 's|#m||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q r; then
+  ui_print "- Activating ring stream..."
+  sed -i 's|#r||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q a; then
+  ui_print "- Activating alarm stream..."
+  sed -i 's|#a||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q s; then
+  ui_print "- Activating system stream..."
+  sed -i 's|#s||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q v; then
+  ui_print "- Activating voice_call stream..."
+  sed -i 's|#v||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q n; then
+  ui_print "- Activating notification stream..."
+  sed -i 's|#n||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q b; then
+  ui_print "- Activating bluetooth_sco stream..."
+  sed -i 's|#b||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q f; then
+  ui_print "- Activating dtmf stream..."
+  sed -i 's|#f||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q e; then
+  ui_print "- Activating enforced_audible stream..."
+  sed -i 's|#e||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q y; then
+  ui_print "- Activating accessibility stream..."
+  sed -i 's|#y||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q t; then
+  ui_print "- Activating tts stream..."
+  sed -i 's|#t||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q i; then
+  ui_print "- Activating assistant stream..."
+  sed -i 's|#i||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q c; then
+  ui_print "- Activating call_assistant stream..."
+  sed -i 's|#c||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q p; then
+  ui_print "- Activating patch stream..."
+  sed -i 's|#p||g' $FILE
+  ui_print " "
+fi
+if echo "$PROP" | grep -q g; then
+  ui_print "- Activating rerouting stream..."
+  sed -i 's|#g||g' $FILE
+  ui_print " "
+fi
+
+# directory
+if [ "$API" -le 25 ]; then
+  ui_print "- /vendor/lib/soundfx is not supported in SDK 25 and bellow"
+  ui_print "  Using /system/lib/soundfx instead"
+  mv -f $MODPATH/system/vendor/lib/* $MODPATH/system/lib
+  if [ "$IS64BIT" == true ]; then
+    mv -f $MODPATH/system/vendor/lib64/* $MODPATH/system/lib64
+  fi
+  rm -rf $MODPATH/system/vendor/lib*
+  ui_print " "
+fi
+
+# function
+file_check_system() {
+for NAME in $NAMES; do
+  if [ "$IS64BIT" == true ]; then
+    FILE=$SYSTEM/lib64/$NAME
+    FILE2=$SYSTEM_EXT/lib64/$NAME
+    if [ -f $FILE ] || [ -f $FILE2 ]; then
+      ui_print "- Detected $NAME 64"
+      ui_print " "
+      rm -f $MODPATH/system/lib64/$NAME
+    fi
+  fi
+  FILE=$SYSTEM/lib/$NAME
+  FILE2=$SYSTEM_EXT/lib/$NAME
+  if [ -f $FILE ] || [ -f $FILE2 ]; then
+    ui_print "- Detected $NAME"
+    ui_print " "
+    rm -f $MODPATH/system/lib/$NAME
+  fi
+done
+}
+file_check_vendor() {
+for NAME in $NAMES; do
+  if [ "$IS64BIT" == true ]; then
+    FILE=$VENDOR/lib64/$NAME
+    FILE2=$ODM/lib64/$NAME
+    if [ -f $FILE ] || [ -f $FILE2 ]; then
+      ui_print "- Detected $NAME 64"
+      ui_print " "
+      rm -f $MODPATH/system/vendor/lib64/$NAME
+    fi
+  fi
+  FILE=$VENDOR/lib/$NAME
+  FILE2=$ODM/lib/$NAME
+  if [ -f $FILE ] || [ -f $FILE2 ]; then
+    ui_print "- Detected $NAME"
+    ui_print " "
+    rm -f $MODPATH/system/vendor/lib/$NAME
+  fi
+done
+}
+
+# check
+NAMES="libvibrator.so libmedialogservice.so libnbaio.so
+       libaudiospdif.so libaudioprocessing.so libaudio-resampler.so"
+#file_check_system
+
 # audio rotation
 FILE=$MODPATH/service.sh
 if [ "`grep_prop audio.rotation $OPTIONALS`" == 1 ]; then
-  ui_print "- Activating ro.audio.monitorRotation=true"
+  ui_print "- Enables ro.audio.monitorRotation=true"
   sed -i '1i\
 resetprop ro.audio.monitorRotation true' $FILE
   ui_print " "
@@ -352,37 +555,28 @@ fi
 # raw
 FILE=$MODPATH/.aml.sh
 if [ "`grep_prop disable.raw $OPTIONALS`" == 0 ]; then
-  ui_print "- Not disabling Ultra Low Latency playback (RAW)"
+  ui_print "- Not disables Ultra Low Latency playback (RAW)"
   ui_print " "
 else
   sed -i 's/#u//g' $FILE
 fi
 
-# other
-FILE=$MODPATH/service.sh
-if [ "`grep_prop other.etc $OPTIONALS`" == 1 ]; then
-  ui_print "- Activating other etc files bind mount..."
-  sed -i 's/#p//g' $FILE
-  ui_print " "
+# run
+. $MODPATH/copy.sh
+. $MODPATH/.aml.sh
+
+# unmount
+if [ "$BOOTMODE" == true ] && [ ! "$MAGISKPATH" ]; then
+  unmount_mirror
 fi
 
-# permission
-if [ "$API" -ge 26 ]; then
-  ui_print "- Setting permission..."
-  DIR=`find $MODPATH/system/vendor -type d`
-  for DIRS in $DIR; do
-    chown 0.2000 $DIRS
-  done
-  ui_print " "
-fi
 
-# install
-ui_print "- Installing Sound Helper app..."
-FILE=$MODPATH/SoundHelper.apk
-pm install -g -i com.android.vending $FILE
-rm -f $FILE
-ui_print "  Please open Sound Helper app and grant the permissions!"
-ui_print " "
+
+
+
+
+
+
 
 
 
