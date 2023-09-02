@@ -3,6 +3,6 @@
     <privapp-permissions package="com.sec.android.app.soundalive">
         <permission name="android.permission.MODIFY_DEFAULT_AUDIO_EFFECTS"/>
         <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
-		<permission name="android.permission.READ_SEARCH_INDEXABLES"/>
+        <permission name="android.permission.READ_SEARCH_INDEXABLES"/>
     </privapp-permissions>
 </permissions>
