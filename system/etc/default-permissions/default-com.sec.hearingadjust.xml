@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<exceptions>
+    <exception package="com.sec.hearingadjust">
+        <permission name="android.permission.READ_PHONE_STATE" fixed="false"/>
+    </exception>
+</exceptions>
