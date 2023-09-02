@@ -3,17 +3,6 @@ mount_partitions_in_recovery() {
 if [ "$BOOTMODE" != true ]; then
   DIR=/dev/block/bootdevice/by-name
   DIR2=/dev/block/mapper
-  if [ ! "$MAGISK_VER" ]; then
-    if [ "$SYSTEM_ROOT" == true ]; then
-      umount /system_root
-      mount -o rw -t auto $DIR/system$SLOT /system_root\
-      || mount -o rw -t auto $DIR2/system$SLOT /system_root
-    else
-      umount /system
-      mount -o rw -t auto $DIR/system$SLOT /system\
-      || mount -o rw -t auto $DIR2/system$SLOT /system
-    fi
-  fi
   mount -o rw -t auto $DIR/vendor$SLOT /vendor\
   || mount -o rw -t auto $DIR2/vendor$SLOT /vendor\
   || mount -o rw -t auto $DIR/cust /vendor\
@@ -117,6 +106,10 @@ if [ -d $DIR ]; then
     rm -rf $MIRROR$DIR
     if [ -d $MIRROR/system_root$DIR ]; then
       ln -sf $MIRROR/system_root$DIR $MIRROR
+    elif [ -d $MIRROR/vendor$DIR ]; then
+      ln -sf $MIRROR/vendor$DIR $MIRROR
+    elif [ -d $MIRROR/system/vendor$DIR ]; then
+      ln -sf $MIRROR/system/vendor$DIR $MIRROR
     fi
   fi
   ui_print " "

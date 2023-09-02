@@ -42,11 +42,11 @@ else
 fi
 
 # bit
-if [ "$IS64BIT" != true ]; then
+if [ "$IS64BIT" == true ]; then
+  ui_print "- 64 bit"
+else
   ui_print "- 32 bit"
   rm -rf `find $MODPATH -type d -name *64*`
-else
-  ui_print "- 64 bit"
 fi
 ui_print " "
 
@@ -58,10 +58,16 @@ magisk_setup
 
 # path
 SYSTEM=`realpath $MIRROR/system`
-PRODUCT=`realpath $MIRROR/product`
-VENDOR=`realpath $MIRROR/vendor`
-SYSTEM_EXT=`realpath $MIRROR/system_ext`
 if [ "$BOOTMODE" == true ]; then
+  if [ ! -d $MIRROR/vendor ]; then
+    mount_vendor_to_mirror
+  fi
+  if [ ! -d $MIRROR/product ]; then
+    mount_product_to_mirror
+  fi
+  if [ ! -d $MIRROR/system_ext ]; then
+    mount_system_ext_to_mirror
+  fi
   if [ ! -d $MIRROR/odm ]; then
     mount_odm_to_mirror
   fi
@@ -69,6 +75,9 @@ if [ "$BOOTMODE" == true ]; then
     mount_my_product_to_mirror
   fi
 fi
+VENDOR=`realpath $MIRROR/vendor`
+PRODUCT=`realpath $MIRROR/product`
+SYSTEM_EXT=`realpath $MIRROR/system_ext`
 ODM=`realpath $MIRROR/odm`
 MY_PRODUCT=`realpath $MIRROR/my_product`
 
@@ -171,7 +180,7 @@ fi
 DIR=/data/adb/modules/$MODID
 FILE=$DIR/module.prop
 if [ "`grep_prop data.cleanup $OPTIONALS`" == 1 ]; then
-  sed -i 's/^data.cleanup=1/data.cleanup=0/' $OPTIONALS
+  sed -i 's|^data.cleanup=1|data.cleanup=0|g' $OPTIONALS
   ui_print "- Cleaning-up $MODID data..."
   cleanup
   ui_print " "
@@ -325,17 +334,7 @@ if [ -f $SYSTEM/lib64/$NAME ]; then
 else
   COREFX64=false
 fi
-if [ "`grep_prop sa.mod $OPTIONALS`" != 0 ]; then
-  if [ $COREFX == true ]; then
-    ui_print "- Copying $NAME..."
-    cp -f $SYSTEM/lib/$NAME $MODPATH/system/lib
-    ui_print " "
-  fi
-  if [ $COREFX64 == true ]; then
-    ui_print "- Copying $NAME 64..."
-    cp -f $SYSTEM/lib64/$NAME $MODPATH/system/lib64
-    ui_print " "
-  fi
+if [ "$COREFX" != true ] && [ "$COREFX64" != true ]; then
   NAME=dax-default.xml
   NAME2=dsa-default.xml
   FILE=$MODPATH/system/vendor/etc/dolby/$NAME
@@ -358,35 +357,18 @@ $MODPATH/.aml.sh"
   change_name
   NAME=$'\xef\x93\x7f\x67\x55\x87'
   NAME2=$'\x36\x86\xda\xf3\x76\x49'
-  if [ $COREFX == true ] || [ $COREFX64 == true ]; then
-    FILE="$MODPATH/system/lib*/libcorefx.so
-$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
+  FILE="$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
 $MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so
 $MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
-  else
-    FILE="$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
-$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so
-$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
-  fi
   change_name
   NAME=$'\x45\x27\x99\x21\x85\x39'
-  if [ $COREFX == true ] || [ $COREFX64 == true ]; then
-    FILE="$MODPATH/system/lib*/libcorefx.so
-$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
-  else
-    FILE="$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
-  fi
+  FILE="$MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
   change_name
   NAME=$'\xd5\x3e\x26\xda\x02\x53'
   FILE=$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
   change_name
   NAME=$'\x39\x53\x7a\x04\xbc\xaa'
-  if [ $COREFX == true ] || [ $COREFX64 == true ]; then
-    FILE="$MODPATH/system/lib*/libcorefx.so
-$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so"
-  else
-    FILE="$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so"
-  fi
+  FILE="$MODPATH/system/vendor/lib*/soundfx/libeffectproxy.so"
   change_name
   NAME=452799218539
   NAME2=3686daf37649
@@ -400,9 +382,12 @@ fi
 
 # spatial
 if [ "`grep_prop sa.spatial $OPTIONALS`" == 1 ]; then
+  ui_print "- Activating spatializer soundfx..."
   sed -i 's|#z||g' $MODPATH/.aml.sh
+  ui_print " "
 else
-  rm -f `find $MODPATH/system -type f -name *spatial*`
+  rm -f `find $MODPATH/system -type f -name\
+   libswspatializer.so -o -name spatializer-aidl-cpp.so`
 fi
 
 # stream mode
@@ -558,7 +543,7 @@ if [ "`grep_prop disable.raw $OPTIONALS`" == 0 ]; then
   ui_print "- Not disables Ultra Low Latency playback (RAW)"
   ui_print " "
 else
-  sed -i 's/#u//g' $FILE
+  sed -i 's|#u||g' $FILE
 fi
 
 # run

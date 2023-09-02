@@ -7,6 +7,8 @@
 ## Descriptions
 - Equalizer soundfx ported from Samsung Galaxy A53 5G (a53x) and integrated as a Magisk Module for all supported and rooted devices with Magisk
 - Global type soundfx
+- Deactivates stock AOSP soundfx (equalizer, bassboost, virtualizer, & reverb)
+- This is also allowed to install in One UI/TouchWiz ROM
 
 ## Sources
 - https://github.com/ItsLynix/samsung_a53x_dump a53xnaxx-user-13-TP1A.220624.014-A536BXXU4BVJG-release-keys
@@ -24,6 +26,7 @@
 - Install AML Magisk Module https://t.me/androidryukimodsdiscussions/29836 only if using any other audio mod module
 - Reboot
 - If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot after
+- If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot after
 
 ## Known Issues
 - Dolby Atmos, UHQ Upscaler, & Adapt Sound doesn't work except with OneUI ROM and Samsung stock kernel.
@@ -45,7 +48,7 @@
 - You can contribute ideas about this Magisk Module here: https://t.me/androidappsportdevelopment
 
 ## Thanks for Donations
-- This Magisk Module is always will be free but you can however show us that you are care by making a donations:
+This Magisk Module is always will be free but you can however show us that you are care by making a donations:
 - https://ko-fi.com/reiryuki
 - https://www.paypal.me/reiryuki
 - https://t.me/androidryukimodsdiscussions/2619
