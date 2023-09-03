@@ -12,7 +12,6 @@ resetprop ro.audio.ignore_effects false
 resetprop ro.samsung.board universal8825
 resetprop ro.samsung.model SM-A536B
 resetprop ro.samsung.name a53xnaxx
-resetprop ro.build.version.oneui 40000
 
 # restart
 if [ "$API" -ge 24 ]; then
