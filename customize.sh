@@ -9,6 +9,22 @@ if [ "$BOOTMODE" != true ]; then
   ui_print " "
 fi
 
+# optionals
+OPTIONALS=/sdcard/optionals.prop
+if [ ! -f $OPTIONALS ]; then
+  touch $OPTIONALS
+fi
+
+# debug
+if [ "`grep_prop debug.log $OPTIONALS`" == 1 ]; then
+  ui_print "- The install log will contain detailed information"
+  set -x
+  ui_print " "
+fi
+
+# var
+LIST32BIT=`getprop ro.product.cpu.abilist32`
+
 # run
 . $MODPATH/function.sh
 
@@ -43,12 +59,32 @@ fi
 
 # bit
 if [ "$IS64BIT" == true ]; then
-  ui_print "- 64 bit"
+  ui_print "- 64 bit architecture"
+  ui_print " "
+  # 32 bit
+  if [ "$LIST32BIT" ]; then
+    ui_print "- 32 bit library support"
+  else
+    ui_print "- Doesn't support 32 bit library"
+    rm -rf $MODPATH/system*/lib $MODPATH/system*/vendor/lib
+  fi
+  ui_print " "
 else
-  ui_print "- 32 bit"
+  ui_print "- 32 bit architecture"
   rm -rf `find $MODPATH -type d -name *64*`
+  ui_print " "
 fi
-ui_print " "
+
+# one ui core
+if [ ! -d /data/adb/modules_update/OneUICore ]\
+&& [ ! -d /data/adb/modules/OneUICore ]; then
+  ui_print "! One UI Core Magisk Module is not installed."
+  ui_print "  Please read github installation guide!"
+  abort
+else
+  rm -f /data/adb/modules/OneUICore/remove
+  rm -f /data/adb/modules/OneUICore/disable
+fi
 
 # recovery
 mount_partitions_in_recovery
@@ -80,12 +116,6 @@ PRODUCT=`realpath $MIRROR/product`
 SYSTEM_EXT=`realpath $MIRROR/system_ext`
 ODM=`realpath $MIRROR/odm`
 MY_PRODUCT=`realpath $MIRROR/my_product`
-
-# optionals
-OPTIONALS=/sdcard/optionals.prop
-if [ ! -f $OPTIONALS ]; then
-  touch $OPTIONALS
-fi
 
 # sepolicy
 FILE=$MODPATH/sepolicy.rule
@@ -318,21 +348,21 @@ change_name() {
 ui_print "- Changing $NAME to $NAME2 at"
 ui_print "$FILE"
 ui_print "  Please wait..."
-sed -i "s/$NAME/$NAME2/g" $FILE
+sed -i "s|$NAME|$NAME2|g" $FILE
 ui_print " "
 }
 
 # mod
 NAME=libcorefx.so
-if [ -f $SYSTEM/lib/$NAME ]; then
-  COREFX=true
-else
-  COREFX=false
-fi
 if [ -f $SYSTEM/lib64/$NAME ]; then
   COREFX64=true
 else
   COREFX64=false
+fi
+if [ -f $SYSTEM/lib/$NAME ]; then
+  COREFX=true
+else
+  COREFX=false
 fi
 if [ "$COREFX" != true ] && [ "$COREFX64" != true ]; then
   NAME=dax-default.xml
@@ -344,12 +374,14 @@ if [ "$COREFX" != true ] && [ "$COREFX64" != true ]; then
   change_name
   NAME=libswdap.so
   NAME2=libswdsa.so
-  FILE=$MODPATH/system/vendor/lib/soundfx/$NAME
-  MODFILE=$MODPATH/system/vendor/lib/soundfx/$NAME2
-  rename_file
   if [ "$IS64BIT" == true ]; then
     FILE=$MODPATH/system/vendor/lib64/soundfx/$NAME
     MODFILE=$MODPATH/system/vendor/lib64/soundfx/$NAME2
+    rename_file
+  fi
+  if [ "$LIST32BIT" ]; then
+    FILE=$MODPATH/system/vendor/lib/soundfx/$NAME
+    MODFILE=$MODPATH/system/vendor/lib/soundfx/$NAME2
     rename_file
   fi
   FILE="$MODPATH/system/vendor/lib*/soundfx/$NAME2
@@ -380,14 +412,55 @@ $MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
   change_name
 fi
 
-# spatial
-if [ "`grep_prop sa.spatial $OPTIONALS`" == 1 ]; then
-  ui_print "- Activating spatializer soundfx..."
-  sed -i 's|#z||g' $MODPATH/.aml.sh
+# soundfx
+FILE=$MODPATH/.aml.sh
+if [ "`grep_prop sa.proxy $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use proxy soundfx"
+  sed -i 's|#w||g' $FILE
   ui_print " "
 else
-  rm -f `find $MODPATH/system -type f -name\
-   libswspatializer.so -o -name spatializer-aidl-cpp.so`
+  sed -i 's|#x||g' $FILE
+fi
+if [ "`grep_prop sa.volumemonitor $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use volumemonitor soundfx"
+  ui_print " "
+else
+  sed -i 's|#1||g' $FILE
+fi
+if [ "`grep_prop sa.myspace $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use myspace soundfx"
+  ui_print " "
+else
+  sed -i 's|#2||g' $FILE
+fi
+if [ "`grep_prop sa.mysound $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use mysound fx"
+  ui_print " "
+else
+  sed -i 's|#3||g' $FILE
+fi
+if [ "`grep_prop sa.dolby $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use dolby soundfx"
+#  sed -i 's|<SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>TRUE|<SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>FALSE|g' $MODPATH/system/vendor/etc/floating_feature.xml
+  ui_print " "
+else
+  sed -i 's|#4||g' $FILE
+fi
+if [ "`grep_prop sa.soundbooster $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use soundbooster fx"
+  ui_print " "
+else
+  sed -i 's|#5||g' $FILE
+fi
+if [ "`grep_prop sa.spatial $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use spatializer soundfx"
+  ui_print " "
+else
+  sed -i 's|#6||g' $FILE
+fi
+if [ "`grep_prop sa.volumemonitor $OPTIONALS`" != 0 ]\
+|| [ "`grep_prop sa.proxy $OPTIONALS`" != 0 ]; then
+  sed -i 's|#0||g' $FILE
 fi
 
 # stream mode
@@ -471,62 +544,12 @@ fi
 
 # directory
 if [ "$API" -le 25 ]; then
-  ui_print "- /vendor/lib/soundfx is not supported in SDK 25 and bellow"
-  ui_print "  Using /system/lib/soundfx instead"
-  mv -f $MODPATH/system/vendor/lib/* $MODPATH/system/lib
-  if [ "$IS64BIT" == true ]; then
-    mv -f $MODPATH/system/vendor/lib64/* $MODPATH/system/lib64
-  fi
+  ui_print "- /vendor/lib*/soundfx is not supported in SDK 25 and bellow"
+  ui_print "  Using /system/lib*/soundfx instead"
+  cp -rf $MODPATH/system/vendor/lib* $MODPATH/system
   rm -rf $MODPATH/system/vendor/lib*
   ui_print " "
 fi
-
-# function
-file_check_system() {
-for NAME in $NAMES; do
-  if [ "$IS64BIT" == true ]; then
-    FILE=$SYSTEM/lib64/$NAME
-    FILE2=$SYSTEM_EXT/lib64/$NAME
-    if [ -f $FILE ] || [ -f $FILE2 ]; then
-      ui_print "- Detected $NAME 64"
-      ui_print " "
-      rm -f $MODPATH/system/lib64/$NAME
-    fi
-  fi
-  FILE=$SYSTEM/lib/$NAME
-  FILE2=$SYSTEM_EXT/lib/$NAME
-  if [ -f $FILE ] || [ -f $FILE2 ]; then
-    ui_print "- Detected $NAME"
-    ui_print " "
-    rm -f $MODPATH/system/lib/$NAME
-  fi
-done
-}
-file_check_vendor() {
-for NAME in $NAMES; do
-  if [ "$IS64BIT" == true ]; then
-    FILE=$VENDOR/lib64/$NAME
-    FILE2=$ODM/lib64/$NAME
-    if [ -f $FILE ] || [ -f $FILE2 ]; then
-      ui_print "- Detected $NAME 64"
-      ui_print " "
-      rm -f $MODPATH/system/vendor/lib64/$NAME
-    fi
-  fi
-  FILE=$VENDOR/lib/$NAME
-  FILE2=$ODM/lib/$NAME
-  if [ -f $FILE ] || [ -f $FILE2 ]; then
-    ui_print "- Detected $NAME"
-    ui_print " "
-    rm -f $MODPATH/system/vendor/lib/$NAME
-  fi
-done
-}
-
-# check
-NAMES="libvibrator.so libmedialogservice.so libnbaio.so
-       libaudiospdif.so libaudioprocessing.so libaudio-resampler.so"
-#file_check_system
 
 # audio rotation
 FILE=$MODPATH/service.sh

@@ -90,13 +90,6 @@ mkdir -p $DIR
 chmod 0700 $DIR
 chown 1041.1041 $DIR
 
-# cleaning
-FILE=$MODPATH/cleaner.sh
-if [ -f $FILE ]; then
-  . $FILE
-  rm -f $FILE
-fi
-
 # permission
 if [ "$API" -ge 26 ]; then
   DIRS=`find $MODPATH/vendor\
@@ -104,6 +97,7 @@ if [ "$API" -ge 26 ]; then
   for DIR in $DIRS; do
     chown 0.2000 $DIR
   done
+  chcon -R u:object_r:system_lib_file:s0 $MODPATH/system/lib*
   chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/odm/etc
   if [ -L $MODPATH/system/vendor ]\
   && [ -d $MODPATH/vendor ]; then
@@ -147,7 +141,12 @@ if ! grep delta /data/adb/magisk/util_functions.sh; then
   mount_helper
 fi
 
-
+# cleaning
+FILE=$MODPATH/cleaner.sh
+if [ -f $FILE ]; then
+  . $FILE
+  mv -f $FILE $FILE\.txt
+fi
 
 
 
