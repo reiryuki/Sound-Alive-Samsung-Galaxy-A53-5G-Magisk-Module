@@ -90,6 +90,24 @@ mkdir -p $DIR
 chmod 0700 $DIR
 chown 1041.1041 $DIR
 
+# file
+FILE=/vendor/etc/floating_feature.xml
+MODFILE=$MODPATH/system$FILE
+NAME=SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO
+NAME2=\<$NAME\>FALSE
+NAME3=\<$NAME\>TRUE
+rm -f $MODFILE
+if [ -f $FILE ]; then
+  if ! grep $NAME $FILE; then
+    cp -f $FILE $MODFILE
+    sed -i '<SecFloatingFeatureSet>/a\
+    <SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>TRUE</SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>' $MODFILE
+  elif grep $NAME2 $FILE; then
+    cp -f $FILE $MODFILE
+    sed -i "s|$NAME2|$NAME3|g" $MODFILE
+  fi
+fi
+
 # permission
 if [ "$API" -ge 26 ]; then
   DIRS=`find $MODPATH/vendor\
