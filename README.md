@@ -34,9 +34,12 @@
 - Dolby Atmos, UHQ Upscaler, Adapt Sound, & Voice Changer doesn't work except with OneUI ROM and Samsung stock kernel.
 - Doesn't support Mediatek audio service
 
-## Troubleshootings and Optionals
-- https://t.me/androidryukimodsdiscussions/29836
+## Optionals
+- https://t.me/androidryukimodsdiscussions/192452
 - https://t.me/androidryukimodsdiscussions/60861
+
+## Troubleshootings
+- https://t.me/androidryukimodsdiscussions/29836
 
 ## Support & Bug Report
 - https://t.me/androidryukimodsdiscussions/2618
