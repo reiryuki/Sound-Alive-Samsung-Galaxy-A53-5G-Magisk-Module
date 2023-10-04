@@ -78,9 +78,10 @@ fi
 # one ui core
 if [ ! -d /data/adb/modules_update/OneUICore ]\
 && [ ! -d /data/adb/modules/OneUICore ]; then
-  ui_print "! One UI Core Magisk Module is not installed."
-  ui_print "  Please read github installation guide!"
-  abort
+  ui_print "- This module requires One UI Core Magisk Module installed"
+  ui_print "  except you are in One UI/Touchwiz ROM."
+  ui_print "  Please read the installation guide!"
+  ui_print " "
 else
   rm -f /data/adb/modules/OneUICore/remove
   rm -f /data/adb/modules/OneUICore/disable

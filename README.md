@@ -31,7 +31,7 @@
 - If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot after
 
 ## Known Issues
-- Dolby Atmos, UHQ Upscaler, Adapt Sound, & Voice Changer doesn't work except with OneUI ROM and Samsung stock kernel.
+- Dolby Atmos, UHQ Upscaler, Adapt Sound, Voice Changer, & Separate app sound doesn't work except with OneUI ROM and Samsung kernel.
 - Doesn't support Mediatek audio service
 
 ## Optionals

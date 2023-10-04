@@ -92,19 +92,41 @@ chown 1041.1041 $DIR
 
 # file
 FILE=/vendor/etc/floating_feature.xml
-MODFILE=$MODPATH/system$FILE
+if [ -L $MODPATH/system/vendor ]\
+&& [ -d $MODPATH/vendor ]; then
+  MODFILE=$MODPATH$FILE
+else
+  MODFILE=$MODPATH/system$FILE
+fi
 NAME=SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO
 NAME2=\<$NAME\>FALSE
 NAME3=\<$NAME\>TRUE
+NAME4=\<SEC_FLOATING_FEATURE_AUDIO_CONFIG_SOUNDALIVE_VERSION\>
 rm -f $MODFILE
 if [ -f $FILE ]; then
-  if ! grep $NAME $FILE; then
-    cp -f $FILE $MODFILE
+  cp -f $FILE $MODFILE
+fi
+if [ -f $MODFILE ]; then
+  if ! grep $NAME $MODFILE; then
     sed -i '<SecFloatingFeatureSet>/a\
     <SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>TRUE</SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>' $MODFILE
-  elif grep $NAME2 $FILE; then
-    cp -f $FILE $MODFILE
+  elif grep $NAME2 $MODFILE; then
     sed -i "s|$NAME2|$NAME3|g" $MODFILE
+  fi
+  if ! grep eq_custom $MODFILE; then
+    sed -i "s|$NAME4|$NAME4\eq_custom,|g" $MODFILE
+  fi
+  if ! grep uhq_onoff $MODFILE; then
+    sed -i "s|$NAME4|$NAME4\uhq_onoff,|g" $MODFILE
+  fi
+  if ! grep karaoke $MODFILE; then
+    sed -i "s|$NAME4|$NAME4\karaoke,|g" $MODFILE
+  fi
+  if ! grep adapt $MODFILE; then
+    sed -i "s|$NAME4|$NAME4\adapt,|g" $MODFILE
+  fi
+  if ! grep spk_stereo $MODFILE; then
+    sed -i "s|$NAME4|$NAME4\spk_stereo,|g" $MODFILE
   fi
 fi
 
