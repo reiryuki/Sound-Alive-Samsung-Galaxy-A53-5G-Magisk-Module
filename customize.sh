@@ -79,7 +79,7 @@ fi
 if [ ! -d /data/adb/modules_update/OneUICore ]\
 && [ ! -d /data/adb/modules/OneUICore ]; then
   ui_print "- This module requires One UI Core Magisk Module installed"
-  ui_print "  except you are in One UI/Touchwiz ROM."
+  ui_print "  except you are in One UI/TouchWiz ROM."
   ui_print "  Please read the installation guide!"
   ui_print " "
 else
