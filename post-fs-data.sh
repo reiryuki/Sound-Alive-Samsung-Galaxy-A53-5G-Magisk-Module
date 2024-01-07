@@ -47,26 +47,21 @@ FILE=$MODPATH/sepolicy.pfsd
 sepolicy_sh
 
 # list
-(
 PKGS="`cat $MODPATH/package.txt`
        com.sec.android.app.soundalive:settingui"
 for PKG in $PKGS; do
-  magisk --denylist rm $PKG
-  magisk --sulist add $PKG
+  magisk --denylist rm $PKG 2>/dev/null
+  magisk --sulist add $PKG 2>/dev/null
 done
-FILE=$MODPATH/tmp_file
-magisk --hide sulist 2>$FILE
-if [ "`cat $FILE`" == 'SuList is enforced' ]; then
+if magisk magiskhide sulist; then
   for PKG in $PKGS; do
-    magisk --hide add $PKG
+    magisk magiskhide add $PKG
   done
 else
   for PKG in $PKGS; do
-    magisk --hide rm $PKG
+    magisk magiskhide rm $PKG
   done
 fi
-rm -f $FILE
-) 2>/dev/null
 
 # conflict
 DIR=/data/adb/modules/SoundAliveFXRemover
@@ -131,6 +126,22 @@ if [ -f $MODFILE ]; then
 fi
 
 # permission
+if [ -L $MODPATH/system/vendor ]\
+&& [ -d $MODPATH/vendor ]; then
+  chmod 0751 $MODPATH/vendor/bin
+  chmod 0751 $MODPATH/vendor/bin/hw
+  FILES=`find $MODPATH/vendor/bin -type f`
+  for FILE in $FILES; do
+    chmod 0755 $FILE
+  done
+else
+  chmod 0751 $MODPATH/system/vendor/bin
+  chmod 0751 $MODPATH/system/vendor/bin/hw
+  FILES=`find $MODPATH/system/vendor/bin -type f`
+  for FILE in $FILES; do
+    chmod 0755 $FILE
+  done
+fi
 if [ "$API" -ge 26 ]; then
   DIRS=`find $MODPATH/vendor\
              $MODPATH/system/vendor -type d`
@@ -141,15 +152,25 @@ if [ "$API" -ge 26 ]; then
   chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/odm/etc
   if [ -L $MODPATH/system/vendor ]\
   && [ -d $MODPATH/vendor ]; then
+    FILES=`find $MODPATH/vendor/bin -type f`
+    for FILE in $FILES; do
+      chown 0.2000 $FILE
+    done
     chcon -R u:object_r:vendor_file:s0 $MODPATH/vendor
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/vendor/etc
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/vendor/odm/etc
-    chcon u:object_r:vendor_firmware_file:s0 $MODPATH/vendor/firmware/*.bin
+    chcon u:object_r:vendor_firmware_file:s0 $MODPATH/vendor/firmware/*
+    chcon u:object_r:mediacodec_exec:s0 $MODPATH/vendor/bin/hw/*
   else
+    FILES=`find $MODPATH/system/vendor/bin -type f`
+    for FILE in $FILES; do
+      chown 0.2000 $FILE
+    done
     chcon -R u:object_r:vendor_file:s0 $MODPATH/system/vendor
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/etc
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/odm/etc
-    chcon u:object_r:vendor_firmware_file:s0 $MODPATH/system/vendor/firmware/*.bin
+    chcon u:object_r:vendor_firmware_file:s0 $MODPATH/system/vendor/firmware/*
+    chcon u:object_r:mediacodec_exec:s0 $MODPATH/system/vendor/bin/hw/*
   fi
 fi
 
@@ -177,9 +198,33 @@ fi
 }
 
 # mount
-if ! grep delta /data/adb/magisk/util_functions.sh; then
+if ! grep -E 'delta|Delta|kitsune' /data/adb/magisk/util_functions.sh; then
   mount_helper
 fi
+
+# function
+mount_bind_file() {
+if [ -f $MODFILE ]; then
+  for FILE in $FILES; do
+    umount $FILE
+    mount -o bind $MODFILE $FILE
+  done
+fi
+}
+mount_bind_to_apex() {
+for NAME in $NAMES; do
+  MODFILE=$MODPATH/system/lib64/$NAME
+  FILES=`find /apex /system/apex -type f -path *lib64/$NAME`
+  mount_bind_file
+  MODFILE=$MODPATH/system/lib/$NAME
+  FILES=`find /apex /system/apex -type f -path *lib/$NAME`
+  mount_bind_file
+done
+}
+
+# mount
+NAMES="libhidlbase.so libbase.so"
+mount_bind_to_apex
 
 # cleaning
 FILE=$MODPATH/cleaner.sh

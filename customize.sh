@@ -1,16 +1,23 @@
 # space
 ui_print " "
 
+# var
+UID=`id -u`
+LIST32BIT=`grep_get_prop ro.product.cpu.abilist32`
+if [ ! "$LIST32BIT" ]; then
+  LIST32BIT=`grep_get_prop ro.system.product.cpu.abilist32`
+fi
+
 # log
 if [ "$BOOTMODE" != true ]; then
-  FILE=/sdcard/$MODID\_recovery.log
+  FILE=/data/media/"$UID"/$MODID\_recovery.log
   ui_print "- Log will be saved at $FILE"
   exec 2>$FILE
   ui_print " "
 fi
 
 # optionals
-OPTIONALS=/sdcard/optionals.prop
+OPTIONALS=/data/media/"$UID"/optionals.prop
 if [ ! -f $OPTIONALS ]; then
   touch $OPTIONALS
 fi
@@ -21,9 +28,6 @@ if [ "`grep_prop debug.log $OPTIONALS`" == 1 ]; then
   set -x
   ui_print " "
 fi
-
-# var
-LIST32BIT=`getprop ro.product.cpu.abilist32`
 
 # run
 . $MODPATH/function.sh
@@ -60,18 +64,25 @@ fi
 # bit
 if [ "$IS64BIT" == true ]; then
   ui_print "- 64 bit architecture"
+  if [ "`grep_prop sa.codec $OPTIONALS`" == 1 ]; then
+    CODEC=true
+  else
+    CODEC=false
+  fi
   ui_print " "
   # 32 bit
   if [ "$LIST32BIT" ]; then
     ui_print "- 32 bit library support"
   else
     ui_print "- Doesn't support 32 bit library"
-    rm -rf $MODPATH/system*/lib $MODPATH/system*/vendor/lib
+    rm -rf $MODPATH/armeabi-v7a $MODPATH/x86\
+     $MODPATH/system*/lib $MODPATH/system*/vendor/lib
   fi
   ui_print " "
 else
   ui_print "- 32 bit architecture"
   rm -rf `find $MODPATH -type d -name *64*`
+  CODEC=false
   ui_print " "
 fi
 
@@ -132,7 +143,7 @@ mv -f $MODPATH/aml.sh $MODPATH/.aml.sh
 # mod ui
 if [ "`grep_prop mod.ui $OPTIONALS`" == 1 ]; then
   APP=SoundAlive_T
-  FILE=/sdcard/$APP.apk
+  FILE=/data/media/"$UID"/$APP.apk
   DIR=`find $MODPATH/system -type d -name $APP`
   ui_print "- Using modified UI apk..."
   if [ -f $FILE ]; then
@@ -210,12 +221,14 @@ fi
 # cleanup
 DIR=/data/adb/modules/$MODID
 FILE=$DIR/module.prop
+PREVMODNAME=`grep_prop name $FILE`
 if [ "`grep_prop data.cleanup $OPTIONALS`" == 1 ]; then
   sed -i 's|^data.cleanup=1|data.cleanup=0|g' $OPTIONALS
   ui_print "- Cleaning-up $MODID data..."
   cleanup
   ui_print " "
-elif [ -d $DIR ] && ! grep -q "$MODNAME" $FILE; then
+elif [ -d $DIR ]\
+&& [ "$PREVMODNAME" != "$MODNAME" ]; then
   ui_print "- Different version detected"
   ui_print "  Cleaning-up $MODID data..."
   cleanup
@@ -338,12 +351,14 @@ hide_app
 
 # function
 rename_file() {
-ui_print "- Renaming"
-ui_print "$FILE"
-ui_print "  to"
-ui_print "$MODFILE"
-mv -f $FILE $MODFILE
-ui_print " "
+if [ -f $FILE ]; then
+  ui_print "- Renaming"
+  ui_print "$FILE"
+  ui_print "  to"
+  ui_print "$MODFILE"
+  mv -f $FILE $MODFILE
+  ui_print " "
+fi
 }
 change_name() {
 ui_print "- Changing $NAME to $NAME2 at"
@@ -557,7 +572,8 @@ FILE=$MODPATH/service.sh
 if [ "`grep_prop audio.rotation $OPTIONALS`" == 1 ]; then
   ui_print "- Enables ro.audio.monitorRotation=true"
   sed -i '1i\
-resetprop ro.audio.monitorRotation true' $FILE
+resetprop -n ro.audio.monitorRotation true\
+resetprop -n ro.audio.monitorWindowRotation true' $FILE
   ui_print " "
 fi
 
@@ -574,8 +590,122 @@ fi
 . $MODPATH/copy.sh
 . $MODPATH/.aml.sh
 
+# check
+if [ $CODEC == true ]; then
+  NAME=_ZN7android23sp_report_stack_pointerEv
+  DES=libSecC2ComponentStore.so
+  LISTS=`strings $MODPATH/system_codec/vendor/lib64/$DES | grep ^lib | grep .so | sed -e "s|$DES||g" -e 's|libcodec2_hidl@1.0.so||g' -e 's|libcodec2_hidl@1.1.so||g' -e 's|libcodec2_hidl@1.2.so||g' -e 's|libcodec2_vndk.so||g' -e 's|libcodec2_soft_eac3dec.so||g' -e 's|libcodec2_soft_ac4dec.so||g' -e 's|libstagefright_bufferpool@2.0.1.so||g' -e 's|libstagefright_foundation_vendor.so||g'`
+  FILE=`for LIST in $LISTS; do echo $SYSTEM/lib64/$LIST; done`
+  ui_print "- Checking"
+  ui_print "$NAME"
+  ui_print "  function at"
+  ui_print "$FILE"
+  ui_print "  Please wait..."
+  if ! grep -q $NAME $FILE; then
+    CODEC=false
+    ui_print "  Function not found"
+  fi
+  ui_print " "
+fi
+
+# codec
+if [ $CODEC == true ]; then
+  ui_print "- Using Dolby C2 codecs"
+  cp -rf $MODPATH/system_codec/* $MODPATH/system
+  sed -i 's|#o||g' $MODPATH/service.sh
+  ui_print " "
+fi
+rm -rf $MODPATH/system_codec
+
+# function
+file_check_vendor() {
+for FILE in $FILES; do
+  DES=$VENDOR$FILE
+  DES2=$ODM$FILE
+  if [ -f $DES ] || [ -f $DES2 ]; then
+    ui_print "- Detected $FILE"
+    ui_print " "
+    rm -f $MODPATH/system/vendor$FILE
+  fi
+done
+}
+
+# check
+if [ $CODEC == true ]; then
+  FILES="/lib64/android.hardware.media.c2@1.0.so
+         /lib64/android.hardware.media.c2@1.1.so
+         /lib64/android.hardware.media.c2@1.2.so
+         /lib64/libcodec2_hidl@1.0.so
+         /lib64/libcodec2_hidl@1.1.so
+         /lib64/libcodec2_hidl@1.2.so
+         /lib64/libcodec2_vndk.so
+         /lib64/libavservices_minijail_vendor.so
+         /lib64/libminijail.so
+         /lib64/libstagefright_bufferpool@2.0.1.so
+         /lib64/libcodec2_soft_common.so
+         /lib64/libSecC2ComponentStore.so
+         /lib64/libsfplugin_ccodec_utils.so
+         /lib64/libcodec2_hidl_plugin.so
+         /lib64/libstagefright_foundation_vendor.so"
+  file_check_vendor
+  FILE=/etc/seccomp_policy/samsung.software.media.c2-base-policy
+  if [ -f $VENDOR$FILE ]; then
+    ui_print "- Detected /vendor$FILE"
+    rm -f $MODPATH/system/vendor$FILE
+    ui_print " "
+  fi
+fi
+
+# check
+NAME=_ZN7android8hardware23getOrCreateCachedBinderEPNS_4hidl4base4V1_05IBaseE
+DES=android.hardware.media.c2@1.0.so
+LIB=libhidlbase.so
+if [ $CODEC == true ]; then
+  if [ -f $MODPATH/system/vendor/lib64/$DES ]; then
+    LISTS=`strings $MODPATH/system/vendor/lib64/$DES | grep .so | sed "s|$DES||g"`
+    FILE=`for LIST in $LISTS; do echo $SYSTEM/lib64/$LIST; done`
+    ui_print "- Checking"
+    ui_print "$NAME"
+    ui_print "  function at"
+    ui_print "$FILE"
+    ui_print "  Please wait..."
+    if ! grep -q $NAME $FILE; then
+      ui_print "  Replaces /system/lib64/$LIB"
+      mv -f $MODPATH/system_support/lib64/$LIB $MODPATH/system/lib64
+    fi
+    ui_print " "
+  fi
+fi
+
+# check
+NAME=_ZN7android4base15WriteStringToFdERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS0_11borrowed_fdE
+DES="$MODPATH/system/vendor/lib64/libavservices_minijail_vendor.so
+     $MODPATH/system/vendor/lib64/libcodec2_hidl@1.0.so"
+LIB=libbase.so
+if [ $CODEC == true ]; then
+  if [ -f $MODPATH/system/vendor/lib64/libavservices_minijail_vendor.so ]\
+  || [ -f $MODPATH/system/vendor/lib64/libcodec2_hidl@1.0.so ]; then
+    LISTS=`strings $DES | grep .so | sed -e 's|libavservices_minijail_vendor.so||g' -e 's|libcodec2_hidl@1.0.so||g' -e 's|android.hardware.media.c2@1.0.so||g' -e 's|libcodec2_vndk.so||g' -e 's|libstagefright_bufferpool@2.0.1.so||g' -e 's|libminijail.so||g' -e 's|LNrso||g'`
+    LISTS=`echo $LISTS | tr ' ' '\n' | sort | uniq`
+    FILE=`for LIST in $LISTS; do echo $SYSTEM/lib64/$LIST; done`
+    ui_print "- Checking"
+    ui_print "$NAME"
+    ui_print "  function at"
+    ui_print "$FILE"
+    ui_print "  Please wait..."
+    if ! grep -q $NAME $FILE; then
+      ui_print "  Replaces /system/lib64/$LIB"
+      mv -f $MODPATH/system_support/lib64/$LIB $MODPATH/system/lib64
+    fi
+    ui_print " "
+  fi
+fi
+
+# cleaning
+rm -rf $MODPATH/system_support
+
 # unmount
-if [ "$BOOTMODE" == true ] && [ ! "$MAGISKPATH" ]; then
+if [ "$BOOTMODE" == true ] && [ ! "$MAGISKTMP" ]; then
   unmount_mirror
 fi
 

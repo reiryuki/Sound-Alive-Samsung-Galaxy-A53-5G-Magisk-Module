@@ -18,7 +18,6 @@
 
 ## Requirements
 - Android 5 and up
-- NOT in Mediatek device
 - Magisk or KernelSU installed
 - One UI Core Magisk Module v0.2 or above installed in non-One UI/non-TouchWiz ROM https://github.com/reiryuki/One-UI-Core-Magisk-Module
 
@@ -36,10 +35,10 @@
 
 ## Optionals
 - https://t.me/androidryukimodsdiscussions/192452
-- https://t.me/androidryukimodsdiscussions/60861
+- Global: https://t.me/androidryukimodsdiscussions/60861
 
 ## Troubleshootings
-- https://t.me/androidryukimodsdiscussions/29836
+- Global: https://t.me/androidryukimodsdiscussions/29836
 
 ## Support & Bug Report
 - https://t.me/androidryukimodsdiscussions/2618

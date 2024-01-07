@@ -1,17 +1,18 @@
 MODPATH=${0%/*}
 
 # log
-exec 2>$MODPATH/debug.log
+LOGFILE=$MODPATH/debug.log
+exec 2>$LOGFILE
 set -x
 
 # var
 API=`getprop ro.build.version.sdk`
 
 # property
-resetprop ro.audio.ignore_effects false
-resetprop ro.samsung.board universal8825
-resetprop ro.samsung.model SM-A536B
-resetprop ro.samsung.name a53xnaxx
+resetprop -n ro.audio.ignore_effects false
+resetprop -n ro.samsung.board universal8825
+resetprop -n ro.samsung.model SM-A536B
+resetprop -n ro.samsung.name a53xnaxx
 
 # restart
 if [ "$API" -ge 24 ]; then
@@ -19,14 +20,13 @@ if [ "$API" -ge 24 ]; then
 else
   SERVER=mediaserver
 fi
-PID=`pidof $SERVER`
-if [ "$PID" ]; then
-  killall $SERVER
-fi
+killall $SERVER\
+ android.hardware.audio@4.0-service-mediatek
 
 # restart
 killall vendor.qti.hardware.vibrator.service\
  vendor.qti.hardware.vibrator.service.oneplus9\
+ vendor.qti.hardware.vibrator.service.oplus\
  android.hardware.camera.provider@2.4-service_64\
  vendor.mediatek.hardware.mtkpower@1.0-service\
  android.hardware.usb@1.0-service\
@@ -37,7 +37,56 @@ killall vendor.qti.hardware.vibrator.service\
  android.hardware.sensors@1.0-service\
  android.hardware.sensors@2.0-service\
  android.hardware.sensors@2.0-service-mediatek\
- android.hardware.sensors@2.0-service.multihal
+ android.hardware.sensors@2.0-service.multihal\
+ android.hardware.health-service.qti
+
+# function
+samsung_software_service() {
+# stop
+NAMES=samsung-software-media-c2-hal-1-0
+for NAME in $NAMES; do
+  if [ "`getprop init.svc.$NAME`" == running ]\
+  || [ "`getprop init.svc.$NAME`" == restarting ]; then
+    stop $NAME
+  fi
+done
+# run
+SERVICES=`realpath /vendor`/bin/hw/samsung.software.media.c2@1.0-service
+for SERVICE in $SERVICES; do
+  killall $SERVICE
+  if ! stat -c %a $SERVICE | grep -E '755|775|777|757'\
+  || [ "`stat -c %u.%g $SERVICE`" != 0.2000 ]; then
+    mount -o remount,rw $SERVICE
+    chmod 0755 $SERVICE
+    chown 0.2000 $SERVICE
+    chcon u:object_r:mediacodec_exec:s0 $SERVICE
+  fi
+  $SERVICE &
+  PID=`pidof $SERVICE`
+done
+}
+check_service() {
+for SERVICE in $SERVICES; do
+  if ! pidof $SERVICE; then
+    $SERVICE &
+    PID=`pidof $SERVICE`
+  fi
+done
+}
+task_service() {
+sleep 1
+FILE=/dev/cpuset/foreground/tasks
+if [ "$PID" ]; then
+  for pid in $PID; do
+    if ! grep $pid $FILE; then
+      echo $pid > $FILE
+    fi
+  done
+fi
+}
+
+# service
+#osamsung_software_service
 
 # wait
 sleep 20
@@ -132,7 +181,7 @@ if [ "$API" -ge 31 ]; then
 fi
 PKGOPS=`appops get $PKG`
 UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
-if [ "$UID" -gt 9999 ]; then
+if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   appops set --uid "$UID" LEGACY_STORAGE allow
   if [ "$API" -ge 29 ]; then
     appops set --uid "$UID" ACCESS_MEDIA_LOCATION allow
@@ -155,7 +204,7 @@ if [ "$API" -ge 30 ]; then
 fi
 PKGOPS=`appops get $PKG`
 UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
-if [ "$UID" -gt 9999 ]; then
+if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   UIDOPS=`appops get --uid "$UID"`
 fi
 
@@ -177,7 +226,7 @@ if [ "$API" -ge 30 ]; then
 fi
 PKGOPS=`appops get $PKG`
 UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
-if [ "$UID" -gt 9999 ]; then
+if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   UIDOPS=`appops get --uid "$UID"`
 fi
 
@@ -192,16 +241,25 @@ if [ "$API" -ge 30 ]; then
 fi
 PKGOPS=`appops get $PKG`
 UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
-if [ "$UID" -gt 9999 ]; then
+if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   UIDOPS=`appops get --uid "$UID"`
 fi
 
+# audio flinger
+DMAF=`dumpsys media.audio_flinger`
+
+# check
+#ocheck_service
+
+# task
+#otask_service
+
 # function
 stop_log() {
-FILE=$MODPATH/debug.log
-SIZE=`du $FILE | sed "s|$FILE||g"`
-if [ "$LOG" != stopped ] && [ "$SIZE" -gt 50 ]; then
+SIZE=`du $LOGFILE | sed "s|$LOGFILE||g"`
+if [ "$LOG" != stopped ] && [ "$SIZE" -gt 75 ]; then
   exec 2>/dev/null
+  set +x
   LOG=stopped
 fi
 }
@@ -215,15 +273,11 @@ sleep 15
 stop_log
 NEXTPID=`pidof $SERVER`
 if [ "`getprop init.svc.$SERVER`" != stopped ]; then
-  until [ "$PID" != "$NEXTPID" ]; do
-    check_audioserver
-  done
-  killall $PROC
-  check_audioserver
+  [ "$PID" != "$NEXTPID" ] && killall $PROC
 else
   start $SERVER
-  check_audioserver
 fi
+check_audioserver
 }
 
 # check

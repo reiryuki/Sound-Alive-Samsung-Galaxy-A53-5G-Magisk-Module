@@ -15,7 +15,9 @@ MODAP=`find $MODPATH -type f -name *policy*.conf -o -name *policy*.xml`
 
 # function
 archdir() {
-if [ -f $libdir/lib/soundfx/$LIB ]; then
+if [ -f $libdir/lib/soundfx/$LIB ]\
+|| [ -f $MODPATH/system$libdir/lib/soundfx/$LIB ]\
+|| [ -f $MODPATH$libdir/lib/soundfx/$LIB ]; then
   ARCHDIR=/lib
 else
   ARCHDIR=/lib64
@@ -345,6 +347,7 @@ sa3d() {
 # store
 LIB=libmyspace.so
 LIBNAME=myspace
+NAME=sa3d
 NAME=sa3d_mod
 UUID=3462a6e0-655a-11e4-8b67-0002a5d5c51b
 UUIDHW=c7a84e61-eebe-4fcc-bc53-efcb841b4625
