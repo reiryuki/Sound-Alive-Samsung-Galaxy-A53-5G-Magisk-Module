@@ -4,6 +4,7 @@
     <allow-implicit-broadcast action="android.media.VOLUME_CHANGED_ACTION"/>
     <allow-implicit-broadcast action="android.media.STREAM_DEVICES_CHANGED_ACTION"/>
     <allow-implicit-broadcast action="android.bluetooth.a2dp.profile.action.ACTIVE_DEVICE_CHANGED"/>
+    <allow-implicit-broadcast action="android.intent.action.ACTION_SHUTDOWN"/>
     <allow-implicit-broadcast action="com.samsung.sea.rm.DEMO_RESET_STARTED"/>
     <allow-implicit-broadcast action="com.samsung.sea.rm.DEMO_RESET_COMPLETED"/>
     <allow-implicit-broadcast action="com.samsung.android.desktopmode.action.ENTER_DESKTOP_MODE"/>
