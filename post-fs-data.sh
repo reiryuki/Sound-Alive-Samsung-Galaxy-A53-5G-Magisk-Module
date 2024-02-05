@@ -71,6 +71,19 @@ fi
 
 # run
 . $MODPATH/copy.sh
+
+# conflict
+AML=/data/adb/modules/aml
+ACDB=/data/adb/modules/acdb
+if [ -d $ACDB ] && [ ! -f $ACDB/disable ]; then
+  if [ ! -d $AML ] || [ -f $AML/disable ]; then
+    rm -f `find $MODPATH/system/etc $MODPATH/vendor/etc\
+     $MODPATH/system/vendor/etc -maxdepth 1 -type f -name\
+     *audio*effects*.conf -o -name *audio*effects*.xml`
+  fi
+fi
+
+# run
 . $MODPATH/.aml.sh
 
 # directory
@@ -204,33 +217,35 @@ fi
 
 # function
 mount_bind_file() {
-if [ -f $MODFILE ]; then
-  for FILE in $FILES; do
-    umount $FILE
-    mount -o bind $MODFILE $FILE
-  done
-fi
+for FILE in $FILES; do
+  umount $FILE
+  mount -o bind $MODFILE $FILE
+done
 }
 mount_bind_to_apex() {
 for NAME in $NAMES; do
   MODFILE=$MODPATH/system/lib64/$NAME
-  FILES=`find /apex /system/apex -type f -path *lib64/$NAME`
-  mount_bind_file
+  if [ -f $MODFILE ]; then
+    FILES=`find /apex /system/apex -path *lib64/* -type f -name $NAME`
+    mount_bind_file
+  fi
   MODFILE=$MODPATH/system/lib/$NAME
-  FILES=`find /apex /system/apex -type f -path *lib/$NAME`
-  mount_bind_file
+  if [ -f $MODFILE ]; then
+    FILES=`find /apex /system/apex -path *lib/* -type f -name $NAME`
+    mount_bind_file
+  fi
 done
 }
 
 # mount
-NAMES="libhidlbase.so libbase.so"
+NAMES="libhidlbase.so libfmq.so libbase.so"
 mount_bind_to_apex
 
 # cleaning
 FILE=$MODPATH/cleaner.sh
 if [ -f $FILE ]; then
   . $FILE
-  mv -f $FILE $FILE\.txt
+  mv -f $FILE $FILE.txt
 fi
 
 

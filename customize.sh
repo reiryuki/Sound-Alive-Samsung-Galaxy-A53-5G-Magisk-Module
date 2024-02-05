@@ -64,7 +64,7 @@ fi
 # bit
 if [ "$IS64BIT" == true ]; then
   ui_print "- 64 bit architecture"
-  if [ "`grep_prop sa.codec $OPTIONALS`" == 1 ]; then
+  if [ "`grep_prop dolby.codec $OPTIONALS`" == 1 ]; then
     CODEC=true
   else
     CODEC=false
@@ -106,23 +106,6 @@ magisk_setup
 
 # path
 SYSTEM=`realpath $MIRROR/system`
-if [ "$BOOTMODE" == true ]; then
-  if [ ! -d $MIRROR/vendor ]; then
-    mount_vendor_to_mirror
-  fi
-  if [ ! -d $MIRROR/product ]; then
-    mount_product_to_mirror
-  fi
-  if [ ! -d $MIRROR/system_ext ]; then
-    mount_system_ext_to_mirror
-  fi
-  if [ ! -d $MIRROR/odm ]; then
-    mount_odm_to_mirror
-  fi
-  if [ ! -d $MIRROR/my_product ]; then
-    mount_my_product_to_mirror
-  fi
-fi
 VENDOR=`realpath $MIRROR/vendor`
 PRODUCT=`realpath $MIRROR/product`
 SYSTEM_EXT=`realpath $MIRROR/system_ext`
@@ -349,6 +332,71 @@ hide_oat
 APPS="MusicFX AudioFX"
 hide_app
 
+# settings
+FILE=$MODPATH/system/vendor/etc/dolby/dax-default.xml
+PROP=`grep_prop dolby.bass $OPTIONALS`
+if [ "$PROP" == true ]; then
+  ui_print "- Changing all bass-enhancer-enable value to true"
+  sed -i 's|bass-enhancer-enable value="false"|bass-enhancer-enable value="true"|g' $FILE
+elif [ "$PROP" == false ]; then
+  ui_print "- Changing all bass-enhancer-enable value to false"
+  sed -i 's|bass-enhancer-enable value="true"|bass-enhancer-enable value="false"|g' $FILE
+elif [ "$PROP" ] && [ "$PROP" != def ] && [ "$PROP" -gt 0 ]; then
+  ui_print "- Changing all bass-enhancer-enable value to true"
+  sed -i 's|bass-enhancer-enable value="false"|bass-enhancer-enable value="true"|g' $FILE
+  ROWS=`grep bass-enhancer-boost $FILE | sed -e 's|<bass-enhancer-boost value="||g' -e 's|"/>||g' -e 's|" />||g'`
+  if [ "$ROWS" ]; then
+    ui_print "- Default bass-enhancer-boost value:"
+    ui_print "$ROWS"
+    ui_print "- Changing all bass-enhancer-boost value to $PROP"
+    for ROW in $ROWS; do
+      sed -i "s|bass-enhancer-boost value=\"$ROW\"|bass-enhancer-boost value=\"$PROP\"|g" $FILE
+    done
+  else
+    ui_print "- This version does not support bass-enhancer-boost"
+  fi
+fi
+if [ "`grep_prop dolby.virtualizer $OPTIONALS`" == 1 ]; then
+  ui_print "- Changing all virtualizer-enable value to true"
+  sed -i 's|virtualizer-enable value="false"|virtualizer-enable value="true"|g' $FILE
+elif [ "`grep_prop dolby.virtualizer $OPTIONALS`" == 0 ]; then
+  ui_print "- Changing all virtualizer-enable value to false"
+  sed -i 's|virtualizer-enable value="true"|virtualizer-enable value="false"|g' $FILE
+fi
+if [ "`grep_prop dolby.volumeleveler $OPTIONALS`" == def ]; then
+  ui_print "- Using default settings of volume-leveler"
+elif [ "`grep_prop dolby.volumeleveler $OPTIONALS`" == 1 ]; then
+  ui_print "- Changing all volume-leveler-enable value to true"
+  sed -i 's|volume-leveler-enable value="false"|volume-leveler-enable value="true"|g' $FILE
+else
+  ui_print "- Changing all volume-leveler-enable value to false"
+  sed -i 's|volume-leveler-enable value="true"|volume-leveler-enable value="false"|g' $FILE
+fi
+if [ "`grep_prop dolby.deepbass $OPTIONALS`" == 1 ]; then
+  ui_print "- Using deeper bass GEQ frequency"
+  sed -i 's|frequency="47"|frequency="0"|g' $FILE
+  sed -i 's|frequency="141"|frequency="47"|g' $FILE
+  sed -i 's|frequency="234"|frequency="141"|g' $FILE
+  sed -i 's|frequency="328"|frequency="234"|g' $FILE
+  sed -i 's|frequency="469"|frequency="328"|g' $FILE
+  sed -i 's|frequency="656"|frequency="469"|g' $FILE
+  sed -i 's|frequency="844"|frequency="656"|g' $FILE
+  sed -i 's|frequency="1031"|frequency="844"|g' $FILE
+  sed -i 's|frequency="1313"|frequency="1031"|g' $FILE
+  sed -i 's|frequency="1688"|frequency="1313"|g' $FILE
+  sed -i 's|frequency="2250"|frequency="1688"|g' $FILE
+  sed -i 's|frequency="3000"|frequency="2250"|g' $FILE
+  sed -i 's|frequency="3750"|frequency="3000"|g' $FILE
+  sed -i 's|frequency="4688"|frequency="3750"|g' $FILE
+  sed -i 's|frequency="5813"|frequency="4688"|g' $FILE
+  sed -i 's|frequency="7125"|frequency="5813"|g' $FILE
+  sed -i 's|frequency="9000"|frequency="7125"|g' $FILE
+  sed -i 's|frequency="11250"|frequency="9000"|g' $FILE
+  sed -i 's|frequency="13875"|frequency="11250"|g' $FILE
+  sed -i 's|frequency="19688"|frequency="13875"|g' $FILE
+fi
+ui_print " "
+
 # function
 rename_file() {
 if [ -f $FILE ]; then
@@ -380,7 +428,8 @@ if [ -f $SYSTEM/lib/$NAME ]; then
 else
   COREFX=false
 fi
-if [ "$COREFX" != true ] && [ "$COREFX64" != true ]; then
+if [ "`grep_prop dolby.mod $OPTIONALS`" != 0 ]\
+&& [ "$COREFX" == false ] && [ "$COREFX64" == false ]; then
   NAME=dax-default.xml
   NAME2=dsa-default.xml
   FILE=$MODPATH/system/vendor/etc/dolby/$NAME
@@ -401,8 +450,10 @@ if [ "$COREFX" != true ] && [ "$COREFX64" != true ]; then
     rename_file
   fi
   FILE="$MODPATH/system/vendor/lib*/soundfx/$NAME2
-$MODPATH/.aml.sh"
+$MODPATH/.aml.sh
+$MODPATH/acdb5.conf"
   change_name
+  sed -i 's|ro.samsung.dolby.mod_uuid false|ro.samsung.dolby.mod_uuid true|g' $MODPATH/service.sh
   NAME=$'\xef\x93\x7f\x67\x55\x87'
   NAME2=$'\x36\x86\xda\xf3\x76\x49'
   FILE="$MODPATH/system/vendor/lib*/soundfx/libaudioeffectoffload.so
@@ -420,7 +471,8 @@ $MODPATH/system/vendor/lib*/soundfx/libswdsa.so"
   change_name
   NAME=452799218539
   NAME2=3686daf37649
-  FILE=$MODPATH/.aml.sh
+  FILE="$MODPATH/.aml.sh
+$MODPATH/acdb5.conf"
   change_name
   NAME=d53e26da0253
   change_name
@@ -437,54 +489,59 @@ if [ "`grep_prop sa.proxy $OPTIONALS`" == 0 ]; then
 else
   sed -i 's|#x||g' $FILE
 fi
-if [ "`grep_prop sa.volumemonitor $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use volumemonitor soundfx"
+if [ "`grep_prop sa.proxy $OPTIONALS`" == 0 ]\
+&& [ "`grep_prop sa.volumemonitor $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use VolumeMonitor soundfx"
   ui_print " "
-else
-  sed -i 's|#1||g' $FILE
-fi
-if [ "`grep_prop sa.myspace $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use myspace soundfx"
-  ui_print " "
+  rm -f $MODPATH/acdb2.conf
 else
   sed -i 's|#2||g' $FILE
 fi
-if [ "`grep_prop sa.mysound $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use mysound fx"
+if [ "`grep_prop sa.myspace $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use MySpace soundfx"
   ui_print " "
+  rm -f $MODPATH/acdb3.conf
 else
   sed -i 's|#3||g' $FILE
 fi
-if [ "`grep_prop sa.dolby $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use dolby soundfx"
-#  sed -i 's|<SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>TRUE|<SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO>FALSE|g' $MODPATH/system/vendor/etc/floating_feature.xml
+if [ "`grep_prop sa.mysound $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use MySound fx"
   ui_print " "
+  rm -f $MODPATH/acdb4.conf
 else
   sed -i 's|#4||g' $FILE
 fi
-if [ "`grep_prop sa.soundbooster $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use soundbooster fx"
+if [ "`grep_prop sa.dolby $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use Dolby soundfx"
   ui_print " "
+  rm -f $MODPATH/acdb5.conf
 else
   sed -i 's|#5||g' $FILE
 fi
-if [ "`grep_prop sa.spatial $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use spatializer soundfx"
+if [ "`grep_prop sa.soundbooster $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use SoundBooster fx"
   ui_print " "
+  rm -f $MODPATH/acdb6.conf
 else
   sed -i 's|#6||g' $FILE
 fi
-if [ "`grep_prop sa.volumemonitor $OPTIONALS`" != 0 ]\
-|| [ "`grep_prop sa.proxy $OPTIONALS`" != 0 ]; then
-  sed -i 's|#0||g' $FILE
+if [ "`grep_prop sa.spatial $OPTIONALS`" == 0 ]; then
+  ui_print "- Does not use Spatializer soundfx"
+  ui_print " "
+  rm -f $MODPATH/acdb7.conf
+else
+  sed -i 's|#7||g' $FILE
 fi
 
 # stream mode
 FILE=$MODPATH/.aml.sh
+FILE2="$MODPATH/acdb3.conf $MODPATH/acdb4.conf
+       $MODPATH/acdb6.conf"
 PROP=`grep_prop stream.mode $OPTIONALS`
 if echo "$PROP" | grep -q m; then
   ui_print "- Activating music stream..."
   sed -i 's|#m||g' $FILE
+  sed -i 's|musicstream=|musicstream=true|g' $FILE2
   ui_print " "
 fi
 if echo "$PROP" | grep -q r; then
@@ -567,6 +624,14 @@ if [ "$API" -le 25 ]; then
   ui_print " "
 fi
 
+# fix sensor
+if [ "`grep_prop dolby.fix.sensor $OPTIONALS`" == 1 ]; then
+  ui_print "- Fixing sensors issue"
+  ui_print "  This causes bootloop in some ROMs"
+  sed -i 's|#x||g' $MODPATH/service.sh
+  ui_print " "
+fi
+
 # audio rotation
 FILE=$MODPATH/service.sh
 if [ "`grep_prop audio.rotation $OPTIONALS`" == 1 ]; then
@@ -592,122 +657,178 @@ fi
 
 # check
 if [ $CODEC == true ]; then
-  NAME=_ZN7android23sp_report_stack_pointerEv
-  DES=libSecC2ComponentStore.so
-  LISTS=`strings $MODPATH/system_codec/vendor/lib64/$DES | grep ^lib | grep .so | sed -e "s|$DES||g" -e 's|libcodec2_hidl@1.0.so||g' -e 's|libcodec2_hidl@1.1.so||g' -e 's|libcodec2_hidl@1.2.so||g' -e 's|libcodec2_vndk.so||g' -e 's|libcodec2_soft_eac3dec.so||g' -e 's|libcodec2_soft_ac4dec.so||g' -e 's|libstagefright_bufferpool@2.0.1.so||g' -e 's|libstagefright_foundation_vendor.so||g'`
-  FILE=`for LIST in $LISTS; do echo $SYSTEM/lib64/$LIST; done`
-  ui_print "- Checking"
-  ui_print "$NAME"
-  ui_print "  function at"
-  ui_print "$FILE"
-  ui_print "  Please wait..."
-  if ! grep -q $NAME $FILE; then
+  NAME=samsung.software.media.c2@*-service
+  NAME2=vendor.dolby.media.c2@*-service
+  FILE=`find $VENDOR $SYSTEM $ODM $SYSTEM_EXT $PRODUCT\
+         -type f -path *bin/hw/$NAME -o -path *bin/hw/$NAME2`
+  FILE2=`find /vendor /system /odm /system_ext /product\
+          -type f -path *bin/hw/$NAME2`
+  if [ "$FILE" ]; then
+    ui_print "- Built-in"
+    ui_print "$FILE"
+    ui_print " is detected"
     CODEC=false
-    ui_print "  Function not found"
+    ui_print " "
+  elif [ "$FILE2" ]; then
+    ui_print "! Dolby C2 codecs service is conflicted with"
+    ui_print "$FILE2"
+    ui_print " "
   fi
-  ui_print " "
 fi
-
-# codec
-if [ $CODEC == true ]; then
-  ui_print "- Using Dolby C2 codecs"
-  cp -rf $MODPATH/system_codec/* $MODPATH/system
-  sed -i 's|#o||g' $MODPATH/service.sh
-  ui_print " "
-fi
-rm -rf $MODPATH/system_codec
 
 # function
-file_check_vendor() {
+file_check_vendor_codec() {
 for FILE in $FILES; do
   DES=$VENDOR$FILE
   DES2=$ODM$FILE
   if [ -f $DES ] || [ -f $DES2 ]; then
     ui_print "- Detected $FILE"
     ui_print " "
-    rm -f $MODPATH/system/vendor$FILE
+    rm -f $MODPATH/system_codec/vendor$FILE
   fi
 done
+}
+check_function() {
+if [ -f $MODPATH/system_support$DIR/$LIB ]; then
+  ui_print "- Checking"
+  ui_print "$NAME"
+  ui_print "  function at"
+  ui_print "$FILE"
+  ui_print "  Please wait..."
+  if ! grep -q $NAME $FILE; then
+    ui_print "  Function not found."
+    ui_print "  Replaces /system$DIR/$LIB."
+    mv -f $MODPATH/system_support$DIR/$LIB $MODPATH/system$DIR
+    [ "$MES" ] && ui_print "$MES"
+  fi
+  ui_print " "
+fi
 }
 
 # check
 if [ $CODEC == true ]; then
-  FILES="/lib64/android.hardware.media.c2@1.0.so
-         /lib64/android.hardware.media.c2@1.1.so
-         /lib64/android.hardware.media.c2@1.2.so
-         /lib64/libcodec2_hidl@1.0.so
-         /lib64/libcodec2_hidl@1.1.so
-         /lib64/libcodec2_hidl@1.2.so
-         /lib64/libcodec2_vndk.so
-         /lib64/libavservices_minijail_vendor.so
-         /lib64/libminijail.so
-         /lib64/libstagefright_bufferpool@2.0.1.so
-         /lib64/libcodec2_soft_common.so
-         /lib64/libSecC2ComponentStore.so
-         /lib64/libsfplugin_ccodec_utils.so
-         /lib64/libcodec2_hidl_plugin.so
-         /lib64/libstagefright_foundation_vendor.so"
-  file_check_vendor
+  DIR=/lib64
+  FILES="$DIR/android.hardware.media.c2@1.0.so
+         $DIR/android.hardware.media.c2@1.1.so
+         $DIR/android.hardware.media.c2@1.2.so
+         $DIR/libcodec2_hidl@1.0.so
+         $DIR/libcodec2_hidl@1.1.so
+         $DIR/libcodec2_hidl@1.2.so
+         $DIR/libcodec2_vndk.so
+         $DIR/libavservices_minijail_vendor.so
+         $DIR/libminijail.so
+         $DIR/libstagefright_bufferpool@2.0.1.so
+         $DIR/libcodec2_soft_common.so
+         $DIR/libSecC2ComponentStore.so
+         $DIR/libsfplugin_ccodec_utils.so
+         $DIR/libcodec2_hidl_plugin.so
+         $DIR/libstagefright_foundation_vendor.so"
+  file_check_vendor_codec
   FILE=/etc/seccomp_policy/samsung.software.media.c2-base-policy
   if [ -f $VENDOR$FILE ]; then
-    ui_print "- Detected /vendor$FILE"
-    rm -f $MODPATH/system/vendor$FILE
+    ui_print "- Detected $FILE"
     ui_print " "
+    rm -f $MODPATH/system_codec/vendor$FILE
   fi
-fi
-
-# check
-NAME=_ZN7android8hardware23getOrCreateCachedBinderEPNS_4hidl4base4V1_05IBaseE
-DES=android.hardware.media.c2@1.0.so
-LIB=libhidlbase.so
-if [ $CODEC == true ]; then
-  if [ -f $MODPATH/system/vendor/lib64/$DES ]; then
-    LISTS=`strings $MODPATH/system/vendor/lib64/$DES | grep .so | sed "s|$DES||g"`
-    FILE=`for LIST in $LISTS; do echo $SYSTEM/lib64/$LIST; done`
+  NAME=_ZN7android19GraphicBufferSource9configureERKNS_2spINS_16ComponentWrapperEEEiijjj
+  NAME2=_ZN7android19GraphicBufferSource9configureERKNS_2spINS_16ComponentWrapperEEEiijjm
+  DES=libcodec2_hidl@1.0.so
+  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
+  if grep -q $NAME $DESFILE; then
+    LISTS=`strings $DESFILE | grep ^lib | grep .so | sed -e "s|$DES||g"\
+            -e 's|libcodec2_vndk.so||g' -e 's|libcodec2_hidl_plugin.so||g'\
+            -e 's|libstagefright_bufferpool@2.0.1.so||g'`
+    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
     ui_print "- Checking"
     ui_print "$NAME"
     ui_print "  function at"
     ui_print "$FILE"
     ui_print "  Please wait..."
     if ! grep -q $NAME $FILE; then
-      ui_print "  Replaces /system/lib64/$LIB"
-      mv -f $MODPATH/system_support/lib64/$LIB $MODPATH/system/lib64
+      if grep -q $NAME2 $FILE; then
+        ui_print "  Changing function to"
+        ui_print "$NAME2"
+        ui_print "  at"
+        ui_print "$DESFILE"
+        sed -i "s|$NAME|$NAME2|g" $DESFILE
+      else
+        ui_print "  ! Function not found."
+        ui_print "    Unsupported Dolby C2 codecs service."
+        CODEC=false
+      fi
     fi
     ui_print " "
   fi
 fi
 
-# check
-NAME=_ZN7android4base15WriteStringToFdERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS0_11borrowed_fdE
-DES="$MODPATH/system/vendor/lib64/libavservices_minijail_vendor.so
-     $MODPATH/system/vendor/lib64/libcodec2_hidl@1.0.so"
-LIB=libbase.so
+# codec
 if [ $CODEC == true ]; then
-  if [ -f $MODPATH/system/vendor/lib64/libavservices_minijail_vendor.so ]\
-  || [ -f $MODPATH/system/vendor/lib64/libcodec2_hidl@1.0.so ]; then
-    LISTS=`strings $DES | grep .so | sed -e 's|libavservices_minijail_vendor.so||g' -e 's|libcodec2_hidl@1.0.so||g' -e 's|android.hardware.media.c2@1.0.so||g' -e 's|libcodec2_vndk.so||g' -e 's|libstagefright_bufferpool@2.0.1.so||g' -e 's|libminijail.so||g' -e 's|LNrso||g'`
+  DIR=/lib64
+  LIB=libhidlbase.so
+  NAME=_ZN7android23sp_report_stack_pointerEv
+  DES=libSecC2ComponentStore.so
+  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
+  if grep -q $NAME $DESFILE; then
+    LISTS=`strings $DESFILE | grep ^lib | grep .so | sed -e "s|$DES||g"\
+            -e 's|libcodec2_hidl@1.0.so||g' -e 's|libcodec2_hidl@1.1.so||g'\
+            -e 's|libcodec2_hidl@1.2.so||g' -e 's|libcodec2_vndk.so||g'\
+            -e 's|libcodec2_soft_eac3dec.so||g'\
+            -e 's|libcodec2_soft_ac4dec.so||g'\
+            -e 's|libstagefright_bufferpool@2.0.1.so||g'\
+            -e 's|libstagefright_foundation_vendor.so||g'`
+    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
+    check_function
+  fi
+  NAME=_ZN7android8hardware23getOrCreateCachedBinderEPNS_4hidl4base4V1_05IBaseE
+  DES=android.hardware.media.c2@1.0.so
+  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
+  if grep -q $NAME $DESFILE; then
+    LISTS=`strings $DESFILE | grep .so | sed "s|$DES||g"`
+    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
+    check_function
+  fi
+  LIB=libfmq.so
+  NAME=_ZN7android8hardware7details13errorWriteLogEiPKc
+  DES=libstagefright_bufferpool@2.0.1.so
+  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
+  if grep -q $NAME $DESFILE; then
+    LISTS=`strings $DESFILE | grep ^lib | grep .so | sed "s|$DES||g"`
+    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
+    check_function
+  fi
+  LIB=libbase.so
+  NAME=_ZN7android4base15WriteStringToFdERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS0_11borrowed_fdE
+  DES=libcodec2_hidl@1.0.so
+  DES2=libavservices_minijail_vendor.so
+  DESFILE="$MODPATH/system_codec/vendor$DIR/$DES
+           $MODPATH/system_codec/vendor$DIR/$DES2"
+  if grep -q $NAME $DESFILE; then
+    LISTS=`strings $DESFILE | grep .so | sed -e "s|$DES||g" -e "s|$DES2||g"\
+            -e 's|android.hardware.media.c2@1.0.so||g' -e 's|libcodec2_vndk.so||g'\
+            -e 's|libstagefright_bufferpool@2.0.1.so||g' -e 's|libminijail.so||g'\
+            -e 's|libcodec2_hidl_plugin.so||g' -e 's|LNrso||g'`
     LISTS=`echo $LISTS | tr ' ' '\n' | sort | uniq`
-    FILE=`for LIST in $LISTS; do echo $SYSTEM/lib64/$LIST; done`
-    ui_print "- Checking"
-    ui_print "$NAME"
-    ui_print "  function at"
-    ui_print "$FILE"
-    ui_print "  Please wait..."
-    if ! grep -q $NAME $FILE; then
-      ui_print "  Replaces /system/lib64/$LIB"
-      mv -f $MODPATH/system_support/lib64/$LIB $MODPATH/system/lib64
-    fi
-    ui_print " "
+    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
+    check_function
   fi
+  ui_print "- Using Dolby C2 codecs service"
+  cp -rf $MODPATH/system_codec/* $MODPATH/system
+  sed -i 's|#o||g' $MODPATH/service.sh
+  ui_print " "
 fi
+rm -rf $MODPATH/system_codec\
+ $MODPATH/system_support
 
-# cleaning
-rm -rf $MODPATH/system_support
+# fix sensor
+if [ "`grep_prop dolby.fix.sensor $OPTIONALS`" == 1 ]; then
+  ui_print "- Fixing sensors issue"
+  ui_print "  This causes bootloop in some ROMs"
+  sed -i 's|#x||g' $MODPATH/service.sh
+  ui_print " "
+fi
 
 # unmount
-if [ "$BOOTMODE" == true ] && [ ! "$MAGISKTMP" ]; then
-  unmount_mirror
-fi
+unmount_mirror
 
 
 

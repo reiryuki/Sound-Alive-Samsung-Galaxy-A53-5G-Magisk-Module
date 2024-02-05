@@ -13,6 +13,7 @@ resetprop -n ro.audio.ignore_effects false
 resetprop -n ro.samsung.board universal8825
 resetprop -n ro.samsung.model SM-A536B
 resetprop -n ro.samsung.name a53xnaxx
+resetprop -n ro.samsung.dolby.mod_uuid false
 
 # restart
 if [ "$API" -ge 24 ]; then
@@ -34,11 +35,11 @@ killall vendor.qti.hardware.vibrator.service\
  android.hardware.light-service.mt6768\
  android.hardware.lights-service.xiaomi_mithorium\
  vendor.samsung.hardware.light-service\
- android.hardware.sensors@1.0-service\
- android.hardware.sensors@2.0-service\
- android.hardware.sensors@2.0-service-mediatek\
- android.hardware.sensors@2.0-service.multihal\
  android.hardware.health-service.qti
+#xkillall android.hardware.sensors@1.0-service\
+#x android.hardware.sensors@2.0-service\
+#x android.hardware.sensors@2.0-service-mediatek\
+#x android.hardware.sensors@2.0-service.multihal
 
 # function
 samsung_software_service() {
@@ -136,7 +137,7 @@ if [ -d $AML ] && [ ! -f $AML/disable ]\
 fi
 
 # wait
-until [ "`getprop sys.boot_completed`" == "1" ]; do
+until [ "`getprop sys.boot_completed`" == 1 ]; do
   sleep 10
 done
 
@@ -179,12 +180,20 @@ fi
 if [ "$API" -ge 31 ]; then
   appops set $PKG MANAGE_MEDIA allow
 fi
+if [ "$API" -ge 34 ]; then
+  appops set "$PKG" READ_MEDIA_VISUAL_USER_SELECTED allow
+fi
 PKGOPS=`appops get $PKG`
-UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
+UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 Id= | sed -e 's|    userId=||g' -e 's|    appId=||g'`
 if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   appops set --uid "$UID" LEGACY_STORAGE allow
+  appops set --uid "$UID" READ_EXTERNAL_STORAGE allow
+  appops set --uid "$UID" WRITE_EXTERNAL_STORAGE allow
   if [ "$API" -ge 29 ]; then
     appops set --uid "$UID" ACCESS_MEDIA_LOCATION allow
+  fi
+  if [ "$API" -ge 34 ]; then
+    appops set --uid "$UID" READ_MEDIA_VISUAL_USER_SELECTED allow
   fi
   UIDOPS=`appops get --uid "$UID"`
 fi
@@ -203,7 +212,7 @@ if [ "$API" -ge 30 ]; then
   appops set $PKG AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore
 fi
 PKGOPS=`appops get $PKG`
-UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
+UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 Id= | sed -e 's|    userId=||g' -e 's|    appId=||g'`
 if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   UIDOPS=`appops get --uid "$UID"`
 fi
@@ -225,7 +234,7 @@ if [ "$API" -ge 30 ]; then
   appops set $PKG AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore
 fi
 PKGOPS=`appops get $PKG`
-UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
+UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 Id= | sed -e 's|    userId=||g' -e 's|    appId=||g'`
 if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   UIDOPS=`appops get --uid "$UID"`
 fi
@@ -240,7 +249,7 @@ if [ "$API" -ge 30 ]; then
   appops set $PKG AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore
 fi
 PKGOPS=`appops get $PKG`
-UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 userId= | sed 's|    userId=||g'`
+UID=`dumpsys package $PKG 2>/dev/null | grep -m 1 Id= | sed -e 's|    userId=||g' -e 's|    appId=||g'`
 if [ "$UID" ] && [ "$UID" -gt 9999 ]; then
   UIDOPS=`appops get --uid "$UID"`
 fi

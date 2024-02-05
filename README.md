@@ -1,4 +1,4 @@
-# Sound Alive Samsung Galaxy A53 5G Magisk Module
+# Sound Alive & Sound Assistant Samsung Galaxy A53 5G Magisk Module
 
 ## DISCLAIMER
 - Samsung apps and blobs are owned by Samsung™.
@@ -9,9 +9,11 @@
 - Global type soundfx
 - Deactivates stock AOSP soundfx (equalizer, bassboost, virtualizer, & reverb)
 - This is also allowed to install in One UI/TouchWiz ROM
+- MySpace, MySound, & SoundBooster FX can only be activated via post process stream mode (READ Optionals bellow!)
 
 ## Sources
 - https://github.com/ItsLynix/samsung_a53x_dump a53xnaxx-user-13-TP1A.220624.014-A536BXXU4BVJG-release-keys
+- libhidlbase.so & libbase.so: CrDroid ROM Android 13
 
 ## Screenshots
 - https://t.me/androidryukimods/854
@@ -30,12 +32,13 @@
 - If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot after
 
 ## Known Issues
-- Dolby Atmos, UHQ Upscaler, Adapt Sound, Voice Changer, & Separate app sound doesn't work except with OneUI ROM and Samsung kernel.
-- Doesn't support Mediatek audio service
+- UHQ Upscaler, Adapt Sound, Voice Changer, & Separate app sound doesn't work except with OneUI ROM
+- Unsupported in some Mediatek devices
 
 ## Optionals
 - https://t.me/androidryukimodsdiscussions/192452
 - Global: https://t.me/androidryukimodsdiscussions/60861
+- Stream: https://t.me/androidryukimodsdiscussions/26764
 
 ## Troubleshootings
 - Global: https://t.me/androidryukimodsdiscussions/29836
@@ -46,6 +49,7 @@
 
 ## Tested on
 - Android 13 CrDroid ROM
+- Android 14 LineageOS ROM
 
 ## Credits and contributors
 - https://t.me/viperatmos
