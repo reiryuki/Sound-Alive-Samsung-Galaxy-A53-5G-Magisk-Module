@@ -672,7 +672,7 @@ if [ "$ARCHDIR" ]; then
 fi
 }
 
-# effect
+# patch audio effects
 #2volumemonitor_hw
 #xsoundalive
 #3#xsa3d

@@ -32,6 +32,7 @@
 - If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot after
 
 ## Known Issues
+- SoundAlive FX may not work if using post process stream mode
 - UHQ Upscaler, Adapt Sound, Voice Changer, & Separate app sound doesn't work except with OneUI ROM
 - Unsupported in some Mediatek devices
 
