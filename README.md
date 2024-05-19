@@ -14,6 +14,7 @@
 ## Sources
 - https://github.com/ItsLynix/samsung_a53x_dump a53xnaxx-user-13-TP1A.220624.014-A536BXXU4BVJG-release-keys
 - libhidlbase.so & libbase.so: CrDroid ROM Android 13
+- libutils.so: LineageOS ROM Android 14 QPR2
 
 ## Screenshots
 - https://t.me/androidryukimods/854
@@ -21,15 +22,15 @@
 ## Requirements
 - Android 5 and up
 - Magisk or KernelSU installed
-- One UI Core Magisk Module v0.2 or above installed in non-One UI/non-TouchWiz ROM https://github.com/reiryuki/One-UI-Core-Magisk-Module
+- One UI Core Magisk Module installed in non-One UI/non-TouchWiz ROM https://github.com/reiryuki/One-UI-Core-Magisk-Module
 
 ## Installation Guide & Download Link
-- Install One UI Core Magisk Module v0.2 or above first if you are in non-One UI/non-TouchWiz ROM: https://github.com/reiryuki/One-UI-Core-Magisk-Module
+- Install One UI Core Magisk Module first if you are in non-One UI/non-TouchWiz ROM: https://github.com/reiryuki/One-UI-Core-Magisk-Module
 - Install this module https://www.pling.com/p/1968026/ via Magisk app or KernelSU app or Recovery if Magisk installed
-- Install AML Magisk Module https://t.me/androidryukimodsdiscussions/29836 only if using any other audio mod module
+- Install AML Magisk Module https://t.me/androidryukimodsdiscussions/29836 only if using any other else audio mod module
 - Reboot
-- If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot after
-- If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot after
+- If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot afterwards
+- If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot afterwards
 
 ## Known Issues
 - SoundAlive FX may not work if using post process stream mode
@@ -52,15 +53,12 @@
 - Android 13 CrDroid ROM
 - Android 14 LineageOS ROM
 
-## Credits and contributors
+## Credits and Contributors
 - https://t.me/viperatmos
 - https://t.me/androidryukimodsdiscussions
 - You can contribute ideas about this Magisk Module here: https://t.me/androidappsportdevelopment
 
-## Thanks for Donations
-This Magisk Module is always will be free but you can however show us that you are care by making a donations:
-- https://ko-fi.com/reiryuki
-- https://www.paypal.me/reiryuki
+## Sponsors
 - https://t.me/androidryukimodsdiscussions/2619
 
 

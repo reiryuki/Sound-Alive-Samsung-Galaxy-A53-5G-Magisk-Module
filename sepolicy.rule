@@ -1,3 +1,5 @@
+## Sound Alive
+
 # debug
 allow system_server system_file file write
 
@@ -40,6 +42,8 @@ allow mtk_hal_audio mtk_hal_audio tcp_socket create
 allow audioserver audioserver tcp_socket create
 
 
+## C2 Codecs
+allow mediacodec vendor_codec2_debug_prop file read
 
 
 

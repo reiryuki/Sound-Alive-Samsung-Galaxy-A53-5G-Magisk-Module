@@ -53,8 +53,7 @@ ui_print " "
 NUM=21
 if [ "$API" -lt $NUM ]; then
   ui_print "! Unsupported SDK $API. You have to upgrade your"
-  ui_print "  Android version at least SDK API $NUM to use this"
-  ui_print "  module."
+  ui_print "  Android version at least SDK $NUM to use this module."
   abort
 else
   ui_print "- SDK $API"
@@ -146,7 +145,10 @@ ui_print "- Cleaning..."
 PKGS=`cat $MODPATH/package.txt`
 if [ "$BOOTMODE" == true ]; then
   for PKG in $PKGS; do
-    RES=`pm uninstall $PKG 2>/dev/null`
+    FILE=`find /data/app -name *$PKG*`
+    if [ "$FILE" ]; then
+      RES=`pm uninstall $PKG 2>/dev/null`
+    fi
   done
 fi
 rm -rf $MODPATH/unused
@@ -169,12 +171,12 @@ for NAME in $NAMES; do
     sh $FILE
     rm -f $FILE
   fi
-  rm -rf /metadata/magisk/$NAME
-  rm -rf /mnt/vendor/persist/magisk/$NAME
-  rm -rf /persist/magisk/$NAME
-  rm -rf /data/unencrypted/magisk/$NAME
-  rm -rf /cache/magisk/$NAME
-  rm -rf /cust/magisk/$NAME
+  rm -rf /metadata/magisk/$NAME\
+   /mnt/vendor/persist/magisk/$NAME\
+   /persist/magisk/$NAME\
+   /data/unencrypted/magisk/$NAME\
+   /cache/magisk/$NAME\
+   /cust/magisk/$NAME
 done
 }
 conflict_disable() {
@@ -624,14 +626,6 @@ if [ "$API" -le 25 ]; then
   ui_print " "
 fi
 
-# fix sensor
-if [ "`grep_prop dolby.fix.sensor $OPTIONALS`" == 1 ]; then
-  ui_print "- Fixing sensors issue"
-  ui_print "  This causes bootloop in some ROMs"
-  sed -i 's|#x||g' $MODPATH/service.sh
-  ui_print " "
-fi
-
 # audio rotation
 FILE=$MODPATH/service.sh
 if [ "`grep_prop audio.rotation $OPTIONALS`" == 1 ]; then
@@ -645,7 +639,7 @@ fi
 # raw
 FILE=$MODPATH/.aml.sh
 if [ "`grep_prop disable.raw $OPTIONALS`" == 0 ]; then
-  ui_print "- Not disables Ultra Low Latency playback (RAW)"
+  ui_print "- Does not disable Ultra Low Latency playback (RAW)"
   ui_print " "
 else
   sed -i 's|#u||g' $FILE
@@ -786,6 +780,13 @@ if [ $CODEC == true ]; then
     LISTS=`strings $DESFILE | grep .so | sed "s|$DES||g"`
     FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
     check_function
+  fi
+  DES=libhidlbase.so
+  LIB=libutils.so
+  if [ -f $MODPATH/system$DIR/$DES ]; then
+    ui_print "- Replaces /system$DIR/$LIB."
+    mv -f $MODPATH/system_support$DIR/$LIB $MODPATH/system$DIR
+    ui_print " "
   fi
   LIB=libfmq.so
   NAME=_ZN7android8hardware7details13errorWriteLogEiPKc

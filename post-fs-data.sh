@@ -46,23 +46,6 @@ chmod 0755 $MODPATH/*/libmagiskpolicy.so
 FILE=$MODPATH/sepolicy.pfsd
 sepolicy_sh
 
-# list
-PKGS="`cat $MODPATH/package.txt`
-       com.sec.android.app.soundalive:settingui"
-for PKG in $PKGS; do
-  magisk --denylist rm $PKG 2>/dev/null
-  magisk --sulist add $PKG 2>/dev/null
-done
-if magisk magiskhide sulist; then
-  for PKG in $PKGS; do
-    magisk magiskhide add $PKG
-  done
-else
-  for PKG in $PKGS; do
-    magisk magiskhide rm $PKG
-  done
-fi
-
 # conflict
 DIR=/data/adb/modules/SoundAliveFXRemover
 if [ -d $DIR ] && [ ! -f $DIR/disable ]; then
@@ -238,7 +221,7 @@ done
 }
 
 # mount
-NAMES="libhidlbase.so libfmq.so libbase.so"
+NAMES="libhidlbase.so libutils.so libfmq.so libbase.so"
 mount_bind_to_apex
 
 # cleaning

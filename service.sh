@@ -24,23 +24,6 @@ fi
 killall $SERVER\
  android.hardware.audio@4.0-service-mediatek
 
-# restart
-killall vendor.qti.hardware.vibrator.service\
- vendor.qti.hardware.vibrator.service.oneplus9\
- vendor.qti.hardware.vibrator.service.oplus\
- android.hardware.camera.provider@2.4-service_64\
- vendor.mediatek.hardware.mtkpower@1.0-service\
- android.hardware.usb@1.0-service\
- android.hardware.usb@1.0-service.basic\
- android.hardware.light-service.mt6768\
- android.hardware.lights-service.xiaomi_mithorium\
- vendor.samsung.hardware.light-service\
- android.hardware.health-service.qti
-#xkillall android.hardware.sensors@1.0-service\
-#x android.hardware.sensors@2.0-service\
-#x android.hardware.sensors@2.0-service-mediatek\
-#x android.hardware.sensors@2.0-service.multihal
-
 # function
 samsung_software_service() {
 # stop
@@ -140,6 +123,23 @@ fi
 until [ "`getprop sys.boot_completed`" == 1 ]; do
   sleep 10
 done
+
+# list
+PKGS="`cat $MODPATH/package.txt`
+       com.sec.android.app.soundalive:settingui"
+for PKG in $PKGS; do
+  magisk --denylist rm $PKG 2>/dev/null
+  magisk --sulist add $PKG 2>/dev/null
+done
+if magisk magiskhide sulist; then
+  for PKG in $PKGS; do
+    magisk magiskhide add $PKG
+  done
+else
+  for PKG in $PKGS; do
+    magisk magiskhide rm $PKG
+  done
+fi
 
 # settings
 #DES=secure
