@@ -14,7 +14,6 @@
 ## Sources
 - https://github.com/ItsLynix/samsung_a53x_dump a53xnaxx-user-13-TP1A.220624.014-A536BXXU4BVJG-release-keys
 - libhidlbase.so & libbase.so: CrDroid ROM Android 13
-- libutils.so: LineageOS ROM Android 14 QPR2
 
 ## Screenshots
 - https://t.me/androidryukimods/854

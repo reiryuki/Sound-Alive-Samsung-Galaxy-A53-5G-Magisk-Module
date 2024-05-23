@@ -29,6 +29,13 @@ if [ "`grep_prop debug.log $OPTIONALS`" == 1 ]; then
   ui_print " "
 fi
 
+# recovery
+if [ "$BOOTMODE" != true ]; then
+  MODPATH_UPDATE=`echo $MODPATH | sed 's|modules/|modules_update/|g'`
+  rm -f $MODPATH/update
+  rm -rf $MODPATH_UPDATE
+fi
+
 # run
 . $MODPATH/function.sh
 
@@ -780,13 +787,6 @@ if [ $CODEC == true ]; then
     LISTS=`strings $DESFILE | grep .so | sed "s|$DES||g"`
     FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
     check_function
-  fi
-  DES=libhidlbase.so
-  LIB=libutils.so
-  if [ -f $MODPATH/system$DIR/$DES ]; then
-    ui_print "- Replaces /system$DIR/$LIB."
-    mv -f $MODPATH/system_support$DIR/$LIB $MODPATH/system$DIR
-    ui_print " "
   fi
   LIB=libfmq.so
   NAME=_ZN7android8hardware7details13errorWriteLogEiPKc
