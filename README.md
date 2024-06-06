@@ -14,6 +14,7 @@
 ## Sources
 - https://github.com/ItsLynix/samsung_a53x_dump a53xnaxx-user-13-TP1A.220624.014-A536BXXU4BVJG-release-keys
 - libhidlbase.so & libbase.so: CrDroid ROM Android 13
+- libmagiskpolicy.so: Kitsune Mask R65C33E4F
 
 ## Screenshots
 - https://t.me/androidryukimods/854

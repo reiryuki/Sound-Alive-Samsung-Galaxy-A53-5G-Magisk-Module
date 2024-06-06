@@ -709,7 +709,8 @@ fi
 # check
 if [ $CODEC == true ]; then
   DIR=/lib64
-  FILES="$DIR/android.hardware.media.c2@1.0.so
+  FILES="/etc/media_codecs_c2_dolby_audio.xml
+         $DIR/android.hardware.media.c2@1.0.so
          $DIR/android.hardware.media.c2@1.1.so
          $DIR/android.hardware.media.c2@1.2.so
          $DIR/libcodec2_hidl@1.0.so
