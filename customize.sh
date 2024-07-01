@@ -492,7 +492,7 @@ fi
 # soundfx
 FILE=$MODPATH/.aml.sh
 if [ "`grep_prop sa.proxy $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use proxy soundfx"
+  ui_print "- Does not use proxy sound effect"
   sed -i 's|#w||g' $FILE
   ui_print " "
 else
@@ -500,46 +500,59 @@ else
 fi
 if [ "`grep_prop sa.proxy $OPTIONALS`" == 0 ]\
 && [ "`grep_prop sa.volumemonitor $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use VolumeMonitor soundfx"
+  ui_print "- Does not use VolumeMonitor sound effect"
   ui_print " "
   rm -f $MODPATH/acdb2.conf
 else
   sed -i 's|#2||g' $FILE
 fi
 if [ "`grep_prop sa.myspace $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use MySpace soundfx"
+  ui_print "- Does not use MySpace sound effect"
   ui_print " "
   rm -f $MODPATH/acdb3.conf
 else
   sed -i 's|#3||g' $FILE
 fi
 if [ "`grep_prop sa.mysound $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use MySound fx"
+  ui_print "- Does not use MySound effect"
   ui_print " "
   rm -f $MODPATH/acdb4.conf
 else
   sed -i 's|#4||g' $FILE
 fi
 if [ "`grep_prop sa.dolby $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use Dolby soundfx"
+  ui_print "- Does not use Dolby sound effect"
   ui_print " "
   rm -f $MODPATH/acdb5.conf
 else
   sed -i 's|#5||g' $FILE
 fi
 if [ "`grep_prop sa.soundbooster $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use SoundBooster fx"
+  ui_print "- Does not use SoundBooster effect"
   ui_print " "
   rm -f $MODPATH/acdb6.conf
 else
   sed -i 's|#6||g' $FILE
 fi
-if [ "`grep_prop sa.spatial $OPTIONALS`" == 0 ]; then
-  ui_print "- Does not use Spatializer soundfx"
+if [ "`grep_prop sa.spatial $OPTIONALS`" == 1 ]; then
+  # ccd4cf09-a79d-46c2-9aae-06a1698d6c8f
+  DES=/vendor/lib*/hw/*audio*.so
+  UUIDTYPE=$'\x09\xcf\xd4\xcc\x9d\xa7\xc2\x46\xae\x9a\x06\xa1\x69\x8d\x6c\x8f'
+  ui_print "- Checking $UUIDTYPE"
+  ui_print "  at $DES"
+  ui_print "  Please wait..."
+  if [ "`grep $UUIDTYPE $DES`" ]; then
+    ui_print "  Uses Spatializer sound effect"
+    ui_print "  It will cause problems if this ROM already has"
+    ui_print "  a built-in Spatializer sound effect"
+    sed -i 's|#7||g' $FILE
+  else
+    ui_print "  ! This ROM doesn't support Spatializer"
+    rm -f $MODPATH/acdb7.conf
+  fi
   ui_print " "
-  rm -f $MODPATH/acdb7.conf
 else
-  sed -i 's|#7||g' $FILE
+  rm -f $MODPATH/acdb7.conf
 fi
 
 # stream mode
