@@ -548,11 +548,15 @@ if [ "`grep_prop sa.spatial $OPTIONALS`" == 1 ]; then
     sed -i 's|#7||g' $FILE
   else
     ui_print "  ! This ROM doesn't support Spatializer"
-    rm -f $MODPATH/acdb7.conf
+    rm -f $MODPATH/acdb7.conf\
+     `find $MODPATH/system/vendor -type f -name\
+     libswspatializer.so -o -name spatializer-aidl-cpp.so`
   fi
   ui_print " "
 else
-  rm -f $MODPATH/acdb7.conf
+  rm -f $MODPATH/acdb7.conf\
+   `find $MODPATH/system/vendor -type f -name\
+   libswspatializer.so -o -name spatializer-aidl-cpp.so`
 fi
 
 # stream mode
