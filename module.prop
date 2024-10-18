@@ -1,8 +1,8 @@
 id=SoundAlive
 name=Sound Alive & Sound Assistant Samsung Galaxy A53 5G
-version=v1.4
-versionCode=14
+version=v1.5
+versionCode=15
 author=Rei Ryuki the Fixer
-description=An equalizer global type soundfx ported from Samsung Galaxy A53 5G (a53x) for any Android 5 and up.
+description=Equalizer global type sound effects ported from Samsung Galaxy A53 5G (a53x) for any arm64-v8a or armeabi-v7a architecture, Android 5 (SDK 21) and up.
 
 

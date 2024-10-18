@@ -290,7 +290,8 @@ check_audioserver
 }
 
 # check
-PROC="com.sec.android.app.soundalive com.sec.android.app.soundalive:settingui"
+PROC="com.sec.android.app.soundalive
+      com.sec.android.app.soundalive:settingui"
 killall $PROC
 check_audioserver
 
