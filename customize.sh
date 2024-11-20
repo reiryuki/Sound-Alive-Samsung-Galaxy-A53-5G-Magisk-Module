@@ -64,17 +64,6 @@ else
 fi
 ui_print " "
 
-# sdk
-NUM=21
-if [ "$API" -lt $NUM ]; then
-  ui_print "! Unsupported SDK $API. You have to upgrade your"
-  ui_print "  Android version at least SDK $NUM to use this module."
-  abort
-else
-  ui_print "- SDK $API"
-  ui_print " "
-fi
-
 # codec
 if [ "`grep_prop dolby.codec $OPTIONALS`" == 1 ]; then
   CODEC=true
@@ -113,6 +102,17 @@ if ! echo "$ABILIST" | grep -q $NAME2; then
   fi
 fi
 
+# sdk
+NUM=21
+if [ "$API" -lt $NUM ]; then
+  ui_print "! Unsupported SDK $API. You have to upgrade your"
+  ui_print "  Android version at least SDK $NUM to use this module."
+  abort
+else
+  ui_print "- SDK $API"
+  ui_print " "
+fi
+
 # one ui core
 if [ ! -d /data/adb/modules/OneUICore ]; then
   ui_print "- This module requires One UI Core Magisk Module installed"
@@ -137,6 +137,22 @@ PRODUCT=`realpath $MIRROR/product`
 SYSTEM_EXT=`realpath $MIRROR/system_ext`
 ODM=`realpath $MIRROR/odm`
 MY_PRODUCT=`realpath $MIRROR/my_product`
+
+# check
+if [ "`grep_prop dolby.mod $OPTIONALS`" == 0 ]; then
+  ui_print "- Checking in-built Dolby apps..."
+  FILE=`find /system/app /system/priv-app /product/app\
+        /product/priv-app /product/preinstall /system_ext/app\
+        /system_ext/priv-app /vendor/app /vendor/euclid/product/app\
+        -type f -name XiaomyDolby.apk -o -name DolbyManager.apk`
+  if [ "$FILE" ]; then
+    ui_print "  Detected"
+    ui_print "$FILE"
+    ui_print "  You need to remove dolby.mod=0 to use the Dolby Atmos,"
+    ui_print "  otherwise the Dolby Atmos will not work."
+  fi
+  ui_print " "
+fi
 
 # sepolicy
 FILE=$MODPATH/sepolicy.rule
@@ -292,12 +308,11 @@ extract_lib() {
 for APP in $APPS; do
   FILE=`find $MODPATH/system -type f -name $APP.apk`
   if [ -f `dirname $FILE`/extract ]; then
-    rm -f `dirname $FILE`/extract
     ui_print "- Extracting..."
-    DIR=`dirname $FILE`/lib/"$ARCH"
+    DIR=`dirname $FILE`/lib/"$ARCHLIB"
     mkdir -p $DIR
     rm -rf $TMPDIR/*
-    DES=lib/"$ABI"/*
+    DES=lib/"$ABILIB"/*
     unzip -d $TMPDIR -o $FILE $DES
     cp -f $TMPDIR/$DES $DIR
     ui_print " "
@@ -356,7 +371,27 @@ done
 # extract
 APPS="`ls $MODPATH/system/priv-app`
       `ls $MODPATH/system/app`"
+ARCHLIB=arm64
+ABILIB=arm64-v8a
 extract_lib
+ARCHLIB=arm
+if echo "$ABILIST" | grep -q armeabi-v7a; then
+  ABILIB=armeabi-v7a
+  extract_lib
+elif echo "$ABILIST" | grep -q armeabi; then
+  ABILIB=armeabi
+  extract_lib
+else
+  ABILIB=armeabi-v7a
+  extract_lib
+fi
+ARCHLIB=x64
+ABILIB=x86_64
+extract_lib
+ARCHLIB=x86
+ABILIB=x86
+extract_lib
+rm -f `find $MODPATH/system -type f -name extract`
 # hide
 hide_oat
 APPS="$APPS MusicFX AudioFX"
