@@ -42,14 +42,14 @@
 ## Optionals
 - https://t.me/androidryukimodsdiscussions/192452
 - Global: https://t.me/ryukinotes/35
-- Stream: https://t.me/androidryukimodsdiscussions/26764
+- Stream: https://t.me/ryukinotes/52
 
 ## Troubleshootings
 - Global: https://t.me/ryukinotes/34
 
 ## Support & Bug Report
 - @HuskyDG
-- https://t.me/androidryukimodsdiscussions/2618
+- https://t.me/ryukinotes/54
 - If you don't do above, issues will be closed immediately
 
 ## Credits and Contributors
