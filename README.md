@@ -40,7 +40,7 @@
 - Unsupported in some Mediatek devices
 
 ## Optionals
-- https://t.me/androidryukimodsdiscussions/192452
+- https://t.me/ryukinotes/60
 - Global: https://t.me/ryukinotes/35
 - Stream: https://t.me/ryukinotes/52
 
