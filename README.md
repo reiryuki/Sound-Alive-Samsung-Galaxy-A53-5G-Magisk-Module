@@ -7,7 +7,6 @@
 ## Descriptions
 - Equalizer sound effects ported from Samsung Galaxy A53 5G (a53x) and integrated as a Magisk Module for all supported and rooted devices with Magisk
 - Global type sound effect
-- Deactivates stock AOSP sound effects (equalizer, bassboost, virtualizer, & reverb)
 - This is also allowed to install in One UI/TouchWiz ROM
 - MySpace, MySound, & SoundBooster effect can only be activated via post process stream mode (READ Optionals bellow!)
 
@@ -38,6 +37,7 @@
 - SoundAlive effect may not work if using post process stream mode
 - UHQ Upscaler, Adapt Sound, Voice Changer, & Separate app sound doesn't work except with OneUI ROM
 - Unsupported in some Mediatek devices
+- Makes stock AOSP sound effects (equalizer, bassboost, virtualizer, & reverb) not loaded
 
 ## Optionals
 - https://t.me/ryukinotes/60
