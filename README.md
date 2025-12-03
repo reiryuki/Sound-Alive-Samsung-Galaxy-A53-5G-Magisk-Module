@@ -12,7 +12,6 @@
 
 ## Sources
 - https://github.com/ItsLynix/samsung_a53x_dump a53xnaxx-user-13-TP1A.220624.014-A536BXXU4BVJG-release-keys
-- libhidlbase.so & libbase.so: CrDroid ROM Android 13
 - libmagiskpolicy.so: Kitsune Mask R6687BB53
 
 ## Screenshots
@@ -21,12 +20,12 @@
 ## Requirements
 - arm64-v8a or armeabi-v7a architecture
 - Android 5 (SDK 21) and up
-- Magisk or KernelSU installed
+- Magisk or Kitsune Mask or KernelSU or Apatch installed
 - One UI Core Magisk Module installed in non-One UI/non-TouchWiz ROM https://github.com/reiryuki/One-UI-Core-Magisk-Module
 
 ## Installation Guide & Download Link
 - Install One UI Core Magisk Module first if you are in non-One UI/non-TouchWiz ROM: https://github.com/reiryuki/One-UI-Core-Magisk-Module
-- Install this module https://www.pling.com/p/1968026/ via Magisk app or KernelSU app or Recovery if Magisk installed
+- Install this module https://www.pling.com/p/1968026/ via Magisk app or Kitsune Mask app or KernelSU app or Apatch app or Recovery if Magisk or Kitsune Mask installed
 - Install AML Magisk Module https://t.me/ryukinotes/34 only if using any other else audio mod module
 - If you are using KernelSU, you need to disable Unmount Modules by Default in KernelSU app settings
 - Reboot

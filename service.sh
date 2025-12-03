@@ -22,55 +22,8 @@ else
   SERVER=mediaserver
 fi
 killall $SERVER\
- android.hardware.audio@4.0-service-mediatek
-
-# function
-samsung_software_service() {
-# stop
-NAMES=samsung-software-media-c2-hal-1-0
-for NAME in $NAMES; do
-  if [ "`getprop init.svc.$NAME`" == running ]\
-  || [ "`getprop init.svc.$NAME`" == restarting ]; then
-    stop $NAME
-  fi
-done
-# run
-SERVICES=`realpath /vendor`/bin/hw/samsung.software.media.c2@1.0-service
-for SERVICE in $SERVICES; do
-  killall $SERVICE
-  if ! stat -c %a $SERVICE | grep -E '755|775|777|757'\
-  || [ "`stat -c %u.%g $SERVICE`" != 0.2000 ]; then
-    mount -o remount,rw $SERVICE
-    chmod 0755 $SERVICE
-    chown 0.2000 $SERVICE
-    chcon u:object_r:mediacodec_exec:s0 $SERVICE
-  fi
-  $SERVICE &
-  PID=`pidof $SERVICE`
-done
-}
-check_service() {
-for SERVICE in $SERVICES; do
-  if ! pidof $SERVICE; then
-    $SERVICE &
-    PID=`pidof $SERVICE`
-  fi
-done
-}
-task_service() {
-sleep 1
-FILE=/dev/cpuset/foreground/tasks
-if [ "$PID" ]; then
-  for pid in $PID; do
-    if ! grep $pid $FILE; then
-      echo $pid > $FILE
-    fi
-  done
-fi
-}
-
-# service
-#osamsung_software_service
+ android.hardware.audio@4.0-service-mediatek\
+ android.hardware.audio.service
 
 # wait
 sleep 20
@@ -247,15 +200,6 @@ if appops get $PKG > /dev/null 2>&1; then
     UIDOPS=`appops get --uid "$UID"`
   fi
 fi
-
-# audio flinger
-#DMAF=`dumpsys media.audio_flinger`
-
-# check
-#ocheck_service
-
-# task
-#otask_service
 
 # function
 stop_log() {

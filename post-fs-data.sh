@@ -96,7 +96,7 @@ NAME3=\<$NAME\>TRUE
 NAME4=\<SEC_FLOATING_FEATURE_AUDIO_CONFIG_SOUNDALIVE_VERSION\>
 rm -f $MODFILE
 if [ -f $FILE ]; then
-  cp -f $FILE $MODFILE
+  cp -af $FILE $MODFILE
 fi
 if [ -f $MODFILE ]; then
   if ! grep $NAME $MODFILE; then
@@ -153,21 +153,29 @@ if [ "$API" -ge 26 ]; then
     for FILE in $FILES; do
       chown 0.2000 $FILE
     done
+    FILES=`find $MODPATH/vendor/lib* -type f`
+    for FILE in $FILES; do
+      chmod 0644 $FILE
+      chown 0.0 $FILE
+    done
     chcon -R u:object_r:vendor_file:s0 $MODPATH/vendor
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/vendor/etc
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/vendor/odm/etc
     chcon u:object_r:vendor_firmware_file:s0 $MODPATH/vendor/firmware/*
-    chcon u:object_r:mediacodec_exec:s0 $MODPATH/vendor/bin/hw/*
   else
     FILES=`find $MODPATH/system/vendor/bin -type f`
     for FILE in $FILES; do
       chown 0.2000 $FILE
     done
+    FILES=`find $MODPATH/system/vendor/lib* -type f`
+    for FILE in $FILES; do
+      chmod 0644 $FILE
+      chown 0.0 $FILE
+    done
     chcon -R u:object_r:vendor_file:s0 $MODPATH/system/vendor
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/etc
     chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/odm/etc
     chcon u:object_r:vendor_firmware_file:s0 $MODPATH/system/vendor/firmware/*
-    chcon u:object_r:mediacodec_exec:s0 $MODPATH/system/vendor/bin/hw/*
   fi
 fi
 
@@ -208,40 +216,6 @@ if [ -d /my_product ]\
 && ! grep /my_product /data/adb/magisk/magisk32; then
   mount_my_product
 fi
-
-# function
-mount_bind_file() {
-for FILE in $FILES; do
-  if echo $FILE | grep libhidlbase.so; then
-    DES=`echo $FILE | sed 's|libhidlbase.so|libutils.so|g'`
-    if grep _ZN7android8String16aSEOS0_ $DES; then
-      umount $FILE
-      mount -o bind $MODFILE $FILE
-    fi
-  else
-    umount $FILE
-    mount -o bind $MODFILE $FILE
-  fi
-done
-}
-mount_bind_to_apex() {
-for NAME in $NAMES; do
-  MODFILE=$MODPATH/system/lib64/$NAME
-  if [ -f $MODFILE ]; then
-    FILES=`find /apex /system/apex -path *lib64/* -type f -name $NAME`
-    mount_bind_file
-  fi
-  MODFILE=$MODPATH/system/lib/$NAME
-  if [ -f $MODFILE ]; then
-    FILES=`find /apex /system/apex -path *lib/* -type f -name $NAME`
-    mount_bind_file
-  fi
-done
-}
-
-# mount
-NAMES="libhidlbase.so libfmq.so libbase.so"
-mount_bind_to_apex
 
 # cleaning
 FILE=$MODPATH/cleaner.sh

@@ -1,5 +1,3 @@
-## Sound Alive
-
 # debug
 allow system_server system_file file write
 
@@ -7,7 +5,6 @@ allow system_server system_file file write
 create { system_lib_file vendor_file vendor_configs_file mediacodec_exec }
 allow { system_file system_lib_file vendor_file vendor_configs_file mediacodec_exec } labeledfs filesystem associate
 allow init { system_file system_lib_file vendor_file vendor_configs_file } { dir file } relabelfrom
-allow init mediacodec_exec file relabelfrom
 
 # unix_stream_socket
 allow { system_app priv_app platform_app untrusted_app_29 untrusted_app_27 untrusted_app } zygote unix_stream_socket getopt
@@ -40,12 +37,5 @@ allow audioserver audioserver capability { sys_nice dac_override sys_admin dac_r
 allow hal_audio_default hal_audio_default tcp_socket create
 allow mtk_hal_audio mtk_hal_audio tcp_socket create
 allow audioserver audioserver tcp_socket create
-
-
-## C2 Codecs
-allow mediacodec vendor_codec2_debug_prop file read
-
-
-
 
 

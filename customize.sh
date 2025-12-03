@@ -130,13 +130,6 @@ else
 fi
 ui_print " "
 
-# codec
-if [ "`grep_prop dolby.codec $OPTIONALS`" == 1 ]; then
-  CODEC=true
-else
-  CODEC=false
-fi
-
 # architecture
 if [ "$ABILIST" ]; then
   ui_print "- $ABILIST architecture"
@@ -147,7 +140,6 @@ NAME2=armeabi-v7a
 if ! echo "$ABILIST" | grep -q $NAME; then
   if echo "$ABILIST" | grep -q $NAME2; then
     rm -rf `find $MODPATH/system -type d -name *64*`
-    CODEC=false
   else
     if [ "$BOOTMODE" == true ]; then
       ui_print "! This ROM doesn't support $NAME nor $NAME2 architecture"
@@ -792,27 +784,6 @@ fi
 . $MODPATH/copy.sh
 . $MODPATH/.aml.sh
 
-# check
-if [ $CODEC == true ]; then
-  NAME=samsung.software.media.c2@*-service
-  NAME2=vendor.dolby.media.c2@*-service
-  FILE=`find $VENDOR $SYSTEM $ODM $SYSTEM_EXT $PRODUCT\
-         -type f -path *bin/hw/$NAME -o -path *bin/hw/$NAME2`
-  FILE2=`find /vendor /system /odm /system_ext /product\
-          -type f -path *bin/hw/$NAME2`
-  if [ "$FILE" ]; then
-    ui_print "- Built-in"
-    ui_print "$FILE"
-    ui_print " is detected"
-    CODEC=false
-    ui_print " "
-  elif [ "$FILE2" ]; then
-    ui_print "! Dolby C2 codecs service is conflicted with"
-    ui_print "$FILE2"
-    ui_print " "
-  fi
-fi
-
 # function
 file_check_vendor() {
 for FILE in $FILES; do
@@ -827,145 +798,6 @@ for FILE in $FILES; do
   done
 done
 }
-check_function() {
-if [ -f $MODPATH/system_support$DIR/$LIB ]; then
-  ui_print "- Checking"
-  ui_print "$NAME"
-  ui_print "  function at"
-  ui_print "$FILE"
-  ui_print "  Please wait..."
-  if ! grep -q $NAME $FILE; then
-    ui_print "  Function not found."
-    ui_print "  Replaces /system$DIR/$LIB systemlessly."
-    mv -f $MODPATH/system_support$DIR/$LIB $MODPATH/system$DIR
-    [ "$MES" ] && ui_print "$MES"
-  fi
-  ui_print " "
-fi
-}
-
-# check
-if [ $CODEC == true ]; then
-  DIR=/lib64
-  FILES="/etc/media_codecs_c2_dolby_audio.xml
-         $DIR/android.hardware.media.c2@1.0.so
-         $DIR/android.hardware.media.c2@1.1.so
-         $DIR/android.hardware.media.c2@1.2.so
-         $DIR/libcodec2_hidl@1.0.so
-         $DIR/libcodec2_hidl@1.1.so
-         $DIR/libcodec2_hidl@1.2.so
-         $DIR/libcodec2_vndk.so
-         $DIR/libavservices_minijail_vendor.so
-         $DIR/libminijail.so
-         $DIR/libstagefright_bufferpool@2.0.1.so
-         $DIR/libcodec2_soft_common.so
-         $DIR/libSecC2ComponentStore.so
-         $DIR/libsfplugin_ccodec_utils.so
-         $DIR/libcodec2_hidl_plugin.so
-         $DIR/libstagefright_foundation_vendor.so"
-  file_check_vendor
-  FILE=/etc/seccomp_policy/samsung.software.media.c2-base-policy
-  if [ -f $VENDOR$FILE ]; then
-    ui_print "- Detected $FILE"
-    ui_print " "
-    rm -f $MODPATH/system_codec/vendor$FILE
-  fi
-  NAME=_ZN7android19GraphicBufferSource9configureERKNS_2spINS_16ComponentWrapperEEEiijjj
-  NAME2=_ZN7android19GraphicBufferSource9configureERKNS_2spINS_16ComponentWrapperEEEiijjm
-  DES=libcodec2_hidl@1.0.so
-  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
-  if grep -q $NAME $DESFILE; then
-    LISTS=`strings $DESFILE | grep ^lib | grep .so | sed -e "s|$DES||g"\
-            -e 's|libcodec2_vndk.so||g' -e 's|libcodec2_hidl_plugin.so||g'\
-            -e 's|libstagefright_bufferpool@2.0.1.so||g'`
-    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
-    ui_print "- Checking"
-    ui_print "$NAME"
-    ui_print "  function at"
-    ui_print "$FILE"
-    ui_print "  Please wait..."
-    if ! grep -q $NAME $FILE; then
-      if grep -q $NAME2 $FILE; then
-        ui_print "  Changing function to"
-        ui_print "$NAME2"
-        ui_print "  at"
-        ui_print "$DESFILE"
-        sed -i "s|$NAME|$NAME2|g" $DESFILE
-      else
-        ui_print "  ! Function not found."
-        ui_print "    Unsupported Dolby C2 codecs service."
-        CODEC=false
-      fi
-    fi
-    ui_print " "
-  fi
-fi
-
-# codec
-if [ $CODEC == true ]; then
-  DIR=/lib64
-  LIB=libhidlbase.so
-  NAME=_ZN7android23sp_report_stack_pointerEv
-  DES=libSecC2ComponentStore.so
-  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
-  if grep -q $NAME $DESFILE; then
-    LISTS=`strings $DESFILE | grep ^lib | grep .so | sed -e "s|$DES||g"\
-            -e 's|libcodec2_hidl@1.0.so||g' -e 's|libcodec2_hidl@1.1.so||g'\
-            -e 's|libcodec2_hidl@1.2.so||g' -e 's|libcodec2_vndk.so||g'\
-            -e 's|libcodec2_soft_eac3dec.so||g'\
-            -e 's|libcodec2_soft_ac4dec.so||g'\
-            -e 's|libstagefright_bufferpool@2.0.1.so||g'\
-            -e 's|libstagefright_foundation_vendor.so||g'`
-    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
-    check_function
-  fi
-  NAME=_ZN7android8hardware23getOrCreateCachedBinderEPNS_4hidl4base4V1_05IBaseE
-  DES=android.hardware.media.c2@1.0.so
-  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
-  if grep -q $NAME $DESFILE; then
-    LISTS=`strings $DESFILE | grep .so | sed "s|$DES||g"`
-    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
-    check_function
-  fi
-  LIB=libfmq.so
-  NAME=_ZN7android8hardware7details13errorWriteLogEiPKc
-  DES=libstagefright_bufferpool@2.0.1.so
-  DESFILE=$MODPATH/system_codec/vendor$DIR/$DES
-  if grep -q $NAME $DESFILE; then
-    LISTS=`strings $DESFILE | grep ^lib | grep .so | sed "s|$DES||g"`
-    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
-    check_function
-  fi
-  LIB=libbase.so
-  NAME=_ZN7android4base15WriteStringToFdERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS0_11borrowed_fdE
-  DES=libcodec2_hidl@1.0.so
-  DES2=libavservices_minijail_vendor.so
-  DESFILE="$MODPATH/system_codec/vendor$DIR/$DES
-           $MODPATH/system_codec/vendor$DIR/$DES2"
-  if grep -q $NAME $DESFILE; then
-    LISTS=`strings $DESFILE | grep .so | sed -e "s|$DES||g" -e "s|$DES2||g"\
-            -e 's|android.hardware.media.c2@1.0.so||g' -e 's|libcodec2_vndk.so||g'\
-            -e 's|libstagefright_bufferpool@2.0.1.so||g' -e 's|libminijail.so||g'\
-            -e 's|libcodec2_hidl_plugin.so||g' -e 's|LNrso||g'`
-    LISTS=`echo $LISTS | tr ' ' '\n' | sort | uniq`
-    FILE=`for LIST in $LISTS; do echo $SYSTEM$DIR/$LIST; done`
-    check_function
-  fi
-  ui_print "- Using Dolby C2 codecs service"
-  cp -rf $MODPATH/system_codec/* $MODPATH/system
-  sed -i 's|#o||g' $MODPATH/service.sh
-  ui_print " "
-fi
-rm -rf $MODPATH/system_codec\
- $MODPATH/system_support
-
-# fix sensor
-if [ "`grep_prop dolby.fix.sensor $OPTIONALS`" == 1 ]; then
-  ui_print "- Fixing sensors issue"
-  ui_print "  This causes bootloop in some ROMs"
-  sed -i 's|#x||g' $MODPATH/service.sh
-  ui_print " "
-fi
 
 # unmount
 unmount_mirror
