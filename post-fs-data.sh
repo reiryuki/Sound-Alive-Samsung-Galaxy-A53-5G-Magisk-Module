@@ -8,6 +8,10 @@ set -x
 # var
 API=`getprop ro.build.version.sdk`
 ABI=`getprop ro.product.cpu.abi`
+if [ ! -d $MODPATH/vendor ]\
+|| [ -L $MODPATH/vendor ]; then
+  MODSYSTEM=/system
+fi
 
 # function
 permissive() {
@@ -84,12 +88,7 @@ chown 1041.1041 $DIR
 
 # file
 FILE=/vendor/etc/floating_feature.xml
-if [ -L $MODPATH/system/vendor ]\
-&& [ -d $MODPATH/vendor ]; then
-  MODFILE=$MODPATH$FILE
-else
-  MODFILE=$MODPATH/system$FILE
-fi
+MODFILE=$MODPATH$MODSYSTEM$FILE
 NAME=SEC_FLOATING_FEATURE_MMFW_SUPPORT_DOLBY_AUDIO
 NAME2=\<$NAME\>FALSE
 NAME3=\<$NAME\>TRUE
@@ -123,22 +122,12 @@ if [ -f $MODFILE ]; then
 fi
 
 # permission
-if [ -L $MODPATH/system/vendor ]\
-&& [ -d $MODPATH/vendor ]; then
-  chmod 0751 $MODPATH/vendor/bin
-  chmod 0751 $MODPATH/vendor/bin/hw
-  FILES=`find $MODPATH/vendor/bin -type f`
-  for FILE in $FILES; do
-    chmod 0755 $FILE
-  done
-else
-  chmod 0751 $MODPATH/system/vendor/bin
-  chmod 0751 $MODPATH/system/vendor/bin/hw
-  FILES=`find $MODPATH/system/vendor/bin -type f`
-  for FILE in $FILES; do
-    chmod 0755 $FILE
-  done
-fi
+chmod 0751 $MODPATH$MODSYSTEM/vendor/bin
+chmod 0751 $MODPATH$MODSYSTEM/vendor/bin/hw
+FILES=`find $MODPATH$MODSYSTEM/vendor/bin -type f`
+for FILE in $FILES; do
+  chmod 0755 $FILE
+done
 if [ "$API" -ge 26 ]; then
   DIRS=`find $MODPATH/vendor\
              $MODPATH/system/vendor -type d`
@@ -147,36 +136,19 @@ if [ "$API" -ge 26 ]; then
   done
   chcon -R u:object_r:system_lib_file:s0 $MODPATH/system/lib*
   chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/odm/etc
-  if [ -L $MODPATH/system/vendor ]\
-  && [ -d $MODPATH/vendor ]; then
-    FILES=`find $MODPATH/vendor/bin -type f`
-    for FILE in $FILES; do
-      chown 0.2000 $FILE
-    done
-    FILES=`find $MODPATH/vendor/lib* -type f`
-    for FILE in $FILES; do
-      chmod 0644 $FILE
-      chown 0.0 $FILE
-    done
-    chcon -R u:object_r:vendor_file:s0 $MODPATH/vendor
-    chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/vendor/etc
-    chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/vendor/odm/etc
-    chcon u:object_r:vendor_firmware_file:s0 $MODPATH/vendor/firmware/*
-  else
-    FILES=`find $MODPATH/system/vendor/bin -type f`
-    for FILE in $FILES; do
-      chown 0.2000 $FILE
-    done
-    FILES=`find $MODPATH/system/vendor/lib* -type f`
-    for FILE in $FILES; do
-      chmod 0644 $FILE
-      chown 0.0 $FILE
-    done
-    chcon -R u:object_r:vendor_file:s0 $MODPATH/system/vendor
-    chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/etc
-    chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/odm/etc
-    chcon u:object_r:vendor_firmware_file:s0 $MODPATH/system/vendor/firmware/*
-  fi
+  FILES=`find $MODPATH$MODSYSTEM/vendor/bin -type f`
+  for FILE in $FILES; do
+    chown 0.2000 $FILE
+  done
+  FILES=`find $MODPATH$MODSYSTEM/vendor/lib* -type f`
+  for FILE in $FILES; do
+    chmod 0644 $FILE
+    chown 0.0 $FILE
+  done
+  chcon -R u:object_r:vendor_file:s0 $MODPATH$MODSYSTEM/vendor
+  chcon -R u:object_r:vendor_configs_file:s0 $MODPATH$MODSYSTEM/vendor/etc
+  chcon -R u:object_r:vendor_configs_file:s0 $MODPATH$MODSYSTEM/vendor/odm/etc
+  chcon u:object_r:vendor_firmware_file:s0 $MODPATH$MODSYSTEM/vendor/firmware/*
 fi
 
 # function

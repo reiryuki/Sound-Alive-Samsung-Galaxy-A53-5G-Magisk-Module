@@ -781,23 +781,9 @@ else
 fi
 
 # run
+MODSYSTEM=/system
 . $MODPATH/copy.sh
 . $MODPATH/.aml.sh
-
-# function
-file_check_vendor() {
-for FILE in $FILES; do
-  DESS="$VENDOR$FILE $ODM$FILE"
-  for DES in $DESS; do
-    if [ -f $DES ]; then
-      ui_print "- Detected"
-      ui_print "$DES"
-      rm -f $MODPATH/system*/vendor$FILE
-      ui_print " "
-    fi
-  done
-done
-}
 
 # unmount
 unmount_mirror
