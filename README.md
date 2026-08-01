@@ -74,17 +74,14 @@ https://t.me/androidryukimods/854
 ## Installation Guide & Download Link
 - If you are using KernelSU, you need to disable Unmount Modules by Default in KernelSU app settings and install https://github.com/KernelSU-Modules-Repo/meta-overlayfs or https://github.com/KernelSU-Modules-Repo/magic_mount_rs or https://github.com/KernelSU-Modules-Repo/hybrid_mount or https://github.com/maxsteeel/nomount first depending on ROM compatibility
 - Install One UI Core Magisk Module first if you are in non-One UI/non-TouchWiz ROM: https://github.com/reiryuki/One-UI-Core-Magisk-Module
-- Install this module https://devuploads.com/b0rxx1yehuvl via Magisk app or Kitsune Mask app or KernelSU app or Apatch app or Recovery if Magisk or Kitsune Mask installed
+- Install this module https://bicolink.com/1pIPtKwTtT via Magisk app or Kitsune Mask app or KernelSU app or Apatch app or Recovery if Magisk or Kitsune Mask installed
 - Install AML Magisk Module https://t.me/ryukinotes/34 only if using any other else audio mod module
 - Reboot
 - If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot afterwards
 - If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot afterwards
 
-## Known Issues
-- SoundAlive effect may not work if using post process stream mode
-- UHQ Upscaler, Adapt Sound, Voice Changer, & Separate app sound doesn't work except with OneUI ROM
-- Unsupported in some Mediatek devices
-- Makes stock AOSP sound effects (equalizer, bassboost, virtualizer, & reverb) not loaded
+## Download Tutorial
+https://t.me/ryukinotes/97
 
 ## Optionals
 - https://t.me/ryukinotes/60
@@ -93,6 +90,12 @@ https://t.me/androidryukimods/854
 
 ## Troubleshootings
 Global: https://t.me/ryukinotes/34
+
+## Known Issues
+- SoundAlive effect may not work if using post process stream mode
+- UHQ Upscaler, Adapt Sound, Voice Changer, & Separate app sound doesn't work except with OneUI ROM
+- Unsupported in some Mediatek devices
+- Makes stock AOSP sound effects (equalizer, bassboost, virtualizer, & reverb) not loaded
 
 ## Support & Bug Report
 - https://t.me/ryukinotes/54
